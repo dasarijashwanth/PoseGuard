@@ -1,12 +1,12 @@
-# PoseGaurd
+# PoseGuard
 
 A browser-based posture awareness app designed to process laptop webcam images locally and give gentle reminders about sustained changes in sitting position.
 
 **Status:** Planning stage. The features below describe the intended first version; camera reliability, performance, and offline behavior have not been validated yet.
 
-## Why PoseGaurd?
+## Why PoseGuard?
 
-While working or studying, it is easy to stay in a shifted sitting position without noticing. PoseGaurd aims to help users notice those changes through live visual feedback and optional sound reminders, while keeping camera images on their laptop.
+While working or studying, it is easy to stay in a shifted sitting position without noticing. PoseGuard aims to help users notice those changes through live visual feedback and optional sound reminders, while keeping camera images on their laptop.
 
 ## Planned Features
 
