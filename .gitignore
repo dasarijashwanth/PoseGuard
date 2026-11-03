@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.local
+*.webm
+*.mp4
+*.mov
+session-exports/
