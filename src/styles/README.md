@@ -1,1 +1,3 @@
-# placeholder
+# src/styles
+
+Application styles.
