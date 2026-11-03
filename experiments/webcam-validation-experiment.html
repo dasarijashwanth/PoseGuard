@@ -1,0 +1,1477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>PoseGuard Validation Experiment</title>
+    <style>
+      :root {
+        --bg: #eef0ec;
+        --panel: #ffffff;
+        --panel-2: #f6f7f4;
+        --ink: #1c2420;
+        --ink-2: #4c5a52;
+        --line: #d3d9d2;
+        --line-strong: #aeb8ae;
+        --accent: #0e6e5c;
+        --accent-ink: #ffffff;
+        --accent-soft: #dcefe9;
+        --warn: #9a6a00;
+        --warn-soft: #f7ecd2;
+        --bad: #b3352b;
+        --bad-soft: #f9e3e0;
+        --good: #1c7a3f;
+        --good-soft: #e0f2e4;
+        --chip: #e8ece7;
+        --video-bg: #10140f;
+        --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --sans: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141816;
+          --panel: #1d2320;
+          --panel-2: #232a26;
+          --ink: #e4eae5;
+          --ink-2: #a7b3aa;
+          --line: #39413b;
+          --line-strong: #55615a;
+          --accent: #2ea88c;
+          --accent-ink: #0c1512;
+          --accent-soft: #1d3630;
+          --warn: #d9a83c;
+          --warn-soft: #3a2f14;
+          --bad: #e06a5e;
+          --bad-soft: #40221e;
+          --good: #57b877;
+          --good-soft: #1d3625;
+          --chip: #2a322d;
+          --video-bg: #050705;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
+
+      /* ---------- header ---------- */
+      header { border-bottom: 2px solid var(--ink); padding-bottom: 12px; margin-bottom: 14px; }
+      header h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: -0.01em; font-weight: 700; }
+      header .q { font-size: 15px; color: var(--ink-2); margin: 0; max-width: 78ch; }
+      header .q strong { color: var(--ink); font-weight: 600; }
+      .privacy-line {
+        margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--ink-2);
+        border: 1px solid var(--line); background: var(--panel-2);
+        padding: 7px 10px; border-radius: 4px;
+      }
+      .privacy-line b { color: var(--accent); font-weight: 700; }
+
+      /* ---------- status strip ---------- */
+      .status-strip {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px;
+      }
+      .stat {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+        padding: 8px 10px; min-width: 0;
+      }
+      .stat .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+      .stat .v { font-family: var(--mono); font-size: 15px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .stat .v small { font-size: 11px; color: var(--ink-2); font-weight: 400; }
+      .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); margin-right: 6px; vertical-align: 1px; }
+      .dot.on { background: var(--good); }
+      .dot.warn { background: var(--warn); }
+      .dot.bad { background: var(--bad); }
+
+      /* ---------- layout ---------- */
+      .grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 14px; align-items: start; }
+      .panel {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+        padding: 14px; margin-bottom: 14px;
+      }
+      .panel h2 {
+        font-size: 13px; font-family: var(--mono); letter-spacing: 0.09em; text-transform: uppercase;
+        margin: 0 0 10px; color: var(--ink); display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+      }
+      .panel h2 .tag { font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--ink-2); font-weight: 400; }
+      .panel p { margin: 0 0 8px; color: var(--ink-2); font-size: 13.5px; }
+      .panel p b, .panel li b { color: var(--ink); }
+
+      /* ---------- video / HUD ---------- */
+      .stage { position: relative; background: var(--video-bg); border-radius: 4px; overflow: hidden; aspect-ratio: 4 / 3; }
+      .stage video, .stage canvas {
+        position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+        transform: scaleX(-1);
+      }
+      .stage video { background: var(--video-bg); z-index: 1; opacity: 0; }
+      .stage.live video { opacity: 1; }
+      .stage canvas { z-index: 2; }
+      .stage .no-cam {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3;
+        color: #9fb3a5; font-family: var(--mono); font-size: 13px; text-align: center; padding: 20px;
+      }
+      .stage .hud-top, .stage .hud-bottom { z-index: 4; }
+      .hud-top {
+        position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; flex-wrap: wrap;
+        pointer-events: none;
+      }
+      .hud-chip {
+        font-family: var(--mono); font-size: 11.5px; background: rgba(8, 12, 9, 0.78); color: #dfeee2;
+        border: 1px solid rgba(255,255,255,0.18); border-radius: 3px; padding: 4px 8px;
+      }
+      .hud-chip.warn { background: rgba(122, 84, 0, 0.85); }
+      .hud-chip.bad { background: rgba(140, 32, 24, 0.88); }
+      .hud-chip.good { background: rgba(14, 92, 60, 0.88); }
+      .hud-bottom {
+        position: absolute; left: 8px; right: 8px; bottom: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+        pointer-events: none;
+      }
+      .hud-meter { background: rgba(8, 12, 9, 0.78); border: 1px solid rgba(255,255,255,0.18); border-radius: 3px; padding: 6px 8px; color: #dfeee2; }
+      .hud-meter .lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; display: flex; justify-content: space-between; }
+      .hud-meter .lab .val { font-size: 12px; }
+      .bar { height: 5px; background: rgba(255,255,255,0.22); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+      .bar > div { height: 100%; width: 0%; background: #57b877; transition: width 0.12s linear; }
+      .bar > div.hot { background: #e0a23c; }
+      .readouts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+      .readout { border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; background: var(--panel-2); }
+      .readout .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); }
+      .readout .v { font-family: var(--mono); font-size: 17px; font-weight: 600; }
+      .readout .v small { font-size: 11px; color: var(--ink-2); font-weight: 400; }
+
+      /* ---------- checklist ---------- */
+      .checklist { list-style: none; margin: 0 0 10px; padding: 0; }
+      .checklist li {
+        display: flex; gap: 9px; align-items: flex-start; padding: 6px 0; border-bottom: 1px dashed var(--line);
+        font-size: 13.5px; color: var(--ink-2);
+      }
+      .checklist li:last-child { border-bottom: none; }
+      .box {
+        flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; border: 1.5px solid var(--line-strong);
+        border-radius: 3px; background: var(--panel); position: relative;
+      }
+      .box.done { background: var(--accent); border-color: var(--accent); }
+      .box.done::after {
+        content: ""; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px;
+        border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(42deg);
+      }
+      .note { font-size: 12.5px; color: var(--ink-2); font-family: var(--mono); }
+
+      /* ---------- camera diagnostics ---------- */
+      .diag { margin-top: 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); padding: 8px 10px; }
+      .diag-row { display: flex; gap: 10px; padding: 3px 0; font-size: 12.5px; align-items: baseline; }
+      .diag-row .dk { flex: 0 0 108px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+      .diag-row .dv { flex: 1; min-width: 0; }
+      .dv.ok { color: var(--good); }
+      .dv.warn { color: var(--warn); }
+      .dv.bad { color: var(--bad); font-weight: 600; }
+      .cam-error {
+        margin-top: 10px; border: 1.5px solid var(--bad); background: var(--bad-soft);
+        border-radius: 4px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5;
+      }
+
+      /* ---------- buttons ---------- */
+      .btn {
+        font-family: var(--sans); font-size: 13.5px; font-weight: 600; cursor: pointer;
+        border: 1px solid var(--line-strong); background: var(--panel); color: var(--ink);
+        border-radius: 4px; padding: 8px 14px;
+      }
+      .btn:hover:not(:disabled) { border-color: var(--ink-2); }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+      .btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+      .btn.danger { color: var(--bad); border-color: var(--bad); }
+      .btn:disabled { opacity: 0.42; cursor: not-allowed; }
+      .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .btn.small { padding: 5px 10px; font-size: 12.5px; }
+
+      /* ---------- protocol steps ---------- */
+      .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+      .steps li {
+        display: flex; gap: 10px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 4px;
+        margin-bottom: 6px; background: var(--panel-2); align-items: flex-start;
+      }
+      .steps li.active { border-color: var(--accent); background: var(--accent-soft); }
+      .steps li.done { opacity: 0.75; }
+      .steps .num {
+        flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-strong);
+        font-family: var(--mono); font-size: 12px; display: flex; align-items: center; justify-content: center;
+        background: var(--panel); font-weight: 600;
+      }
+      .steps li.active .num { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+      .steps li.done .num { background: var(--good); color: #fff; border-color: var(--good); }
+      .steps .body { flex: 1; min-width: 0; }
+      .steps .t { font-weight: 600; font-size: 13.5px; }
+      .steps .d { font-size: 12.5px; color: var(--ink-2); }
+      .steps .st { font-family: var(--mono); font-size: 11px; color: var(--ink-2); white-space: nowrap; padding-top: 3px; }
+      .steps li.active .st { color: var(--accent); font-weight: 700; }
+
+      .prompt-box {
+        border: 1px solid var(--line-strong); border-radius: 4px; padding: 12px; margin-top: 10px;
+        background: var(--panel);
+      }
+      .prompt-box .phase { font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+      .prompt-box .big { font-size: 19px; font-weight: 650; margin: 4px 0 2px; line-height: 1.3; }
+      .prompt-box .sub { font-size: 13px; color: var(--ink-2); margin: 0; }
+      .countdown {
+        font-family: var(--mono); font-size: 44px; font-weight: 700; text-align: center; line-height: 1;
+        padding: 10px 0 4px; font-variant-numeric: tabular-nums;
+      }
+      .prog { height: 8px; background: var(--chip); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+      .prog > div { height: 100%; background: var(--accent); width: 0%; transition: width 0.15s linear; }
+
+      /* ---------- detector panel ---------- */
+      .cue-row { border: 1px solid var(--line); border-radius: 4px; padding: 9px 10px; margin-bottom: 8px; background: var(--panel-2); }
+      .cue-row .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+      .cue-row .name { font-weight: 650; font-size: 13.5px; }
+      .cue-row .meta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+      .cue-row .bar { background: var(--chip); height: 7px; }
+      .cue-row .bar > div { background: var(--warn); }
+      .cue-row.fired { border-color: var(--bad); background: var(--bad-soft); }
+      .cue-row.fired .name::after { content: " - DETECTED"; color: var(--bad); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+      .field label { display: block; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+      .field input {
+        width: 100%; font-family: var(--mono); font-size: 14px; padding: 6px 8px;
+        border: 1px solid var(--line-strong); border-radius: 4px; background: var(--panel); color: var(--ink);
+      }
+
+      /* ---------- tables ---------- */
+      .tbl-wrap { overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; font-size: 13px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+      th { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+      th:first-child, td:first-child { text-align: left; }
+      td.num, th.num { font-family: var(--mono); font-size: 12.5px; }
+      .pill { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+      .pill.yes { background: var(--good-soft); color: var(--good); }
+      .pill.no { background: var(--bad-soft); color: var(--bad); }
+      .pill.pend { background: var(--chip); color: var(--ink-2); }
+      .verdict {
+        border: 1.5px solid var(--line-strong); border-radius: 4px; padding: 10px 12px; margin-top: 10px;
+        font-size: 14px;
+      }
+      .verdict .head { font-family: var(--mono); font-weight: 700; font-size: 13px; letter-spacing: 0.04em; }
+      .verdict.pass { border-color: var(--good); background: var(--good-soft); }
+      .verdict.fail { border-color: var(--bad); background: var(--bad-soft); }
+      .verdict ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 13px; }
+      .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 6px; }
+      .log {
+        font-family: var(--mono); font-size: 11.5px; background: var(--panel-2); border: 1px solid var(--line);
+        border-radius: 4px; padding: 8px 10px; height: 132px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+      }
+      .log .lt { color: var(--ink-2); }
+      footer { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 10px; }
+
+      @media (max-width: 900px) {
+        .grid { grid-template-columns: 1fr; }
+        .status-strip { grid-template-columns: repeat(2, 1fr); }
+        .readouts { grid-template-columns: repeat(2, 1fr); }
+        .summary-grid { grid-template-columns: 1fr; }
+        header h1 { font-size: 21px; }
+      }
+      /* Results tables become stacked rows on narrow screens: no sideways scroll. */
+      @media (max-width: 640px) {
+        .tbl-wrap { overflow-x: visible; }
+        table, tbody, tr, td { display: block; width: 100%; }
+        thead { display: none; }
+        tbody tr { border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; background: var(--panel-2); }
+        tbody td { border-bottom: 1px dashed var(--line); padding: 5px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; }
+        tbody td:last-child { border-bottom: none; }
+        tbody td::before {
+          content: attr(data-label); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em;
+          text-transform: uppercase; color: var(--ink-2); text-align: left;
+        }
+        tbody td:first-child { font-weight: 650; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>PoseGuard Validation Experiment</h1>
+        <p class="q">Experiment question: <strong>Can the intended webcam setup reliably distinguish our chosen posture changes?</strong> Run this protocol on the target laptop before the build proceeds. Two cues only: head tilt and shoulder tilt.</p>
+        <div class="privacy-line"><b>ON-DEVICE ONLY.</b> Video is processed in this browser tab. Nothing is recorded, uploaded, or sent anywhere. The only file produced is the CSV you choose to download at the end.</div>
+      </header>
+
+      <div class="status-strip" aria-label="Session status">
+        <div class="stat"><div class="k">Camera</div><div class="v" id="stCamera"><span class="dot" id="dotCamera"></span>Off</div></div>
+        <div class="stat"><div class="k">Pose engine</div><div class="v" id="stEngine">Not loaded</div></div>
+        <div class="stat"><div class="k">Tracking</div><div class="v" id="stTracking"><span class="dot" id="dotTracking"></span>--</div></div>
+        <div class="stat"><div class="k">Inference rate</div><div class="v" id="stFps">0 <small>checks/s</small></div></div>
+        <div class="stat"><div class="k">Evaluation</div><div class="v" id="stEval"><span class="dot" id="dotEval"></span>Paused</div></div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <!-- Camera / HUD -->
+          <section class="panel" aria-label="Camera preview">
+            <h2>Live feed <span class="tag">skeleton overlay, mirrored preview</span></h2>
+            <div class="stage" id="stage">
+              <div class="no-cam" id="noCam">Camera is off.<br>Press Enable camera in step 1 to start the feed.</div>
+              <video id="video" playsinline muted autoplay></video>
+              <canvas id="overlay"></canvas>
+              <div class="hud-top">
+                <span class="hud-chip" id="hudTrack">TRACKING: --</span>
+                <span class="hud-chip" id="hudStep">STEP: SETUP</span>
+                <span class="hud-chip" id="hudEvent" style="display:none">EVENT</span>
+              </div>
+              <div class="hud-bottom">
+                <div class="hud-meter">
+                  <div class="lab"><span>Head tilt persistence</span><span class="val" id="hudHeadT">0.0s / 5s</span></div>
+                  <div class="bar"><div id="hudHeadBar"></div></div>
+                </div>
+                <div class="hud-meter">
+                  <div class="lab"><span>Shoulder tilt persistence</span><span class="val" id="hudShT">0.0s / 5s</span></div>
+                  <div class="bar"><div id="hudShBar"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="readouts">
+              <div class="readout"><div class="k">Head tilt (ear line vs shoulder line)</div><div class="v"><span id="roHead">--</span><small> deg</small></div></div>
+              <div class="readout"><div class="k">Head deviation from baseline</div><div class="v"><span id="roHeadDev">--</span><small> deg</small></div></div>
+              <div class="readout"><div class="k">Shoulder tilt (vs horizontal)</div><div class="v"><span id="roSh">--</span><small> deg</small></div></div>
+              <div class="readout"><div class="k">Shoulder deviation from baseline</div><div class="v"><span id="roShDev">--</span><small> deg</small></div></div>
+            </div>
+            <p class="note" style="margin-top:10px">Angles are EMA-smoothed. Detection uses the circular (wraparound-safe) deviation from your calibrated baseline, not the raw angle, so a baseline near +/-180 deg cannot produce phantom jumps.</p>
+          </section>
+
+          <!-- Detector -->
+          <section class="panel" aria-label="Detector state">
+            <h2>Detector <span class="tag">MVP rules, two cues</span></h2>
+            <p>A cue fires only after its deviation stays beyond <b>baseline + threshold</b> for <b>5.0 s</b> of continuous persistence. Each cue has an independent timer. Timers reset on tracking loss or stale results, and evaluation pauses while landmarks are missing.</p>
+            <div class="cue-row" id="cueHead">
+              <div class="head"><span class="name">Head tilt</span><span class="meta" id="cueHeadMeta">dev -- deg / threshold 8 deg</span></div>
+              <div class="bar"><div id="cueHeadBar"></div></div>
+            </div>
+            <div class="cue-row" id="cueSh">
+              <div class="head"><span class="name">Shoulder tilt</span><span class="meta" id="cueShMeta">dev -- deg / threshold 6 deg</span></div>
+              <div class="bar"><div id="cueShBar"></div></div>
+            </div>
+          </section>
+
+          <!-- Session log -->
+          <section class="panel" aria-label="Session log">
+            <h2>Session log <span class="tag" id="frameCount">0 frames logged</span></h2>
+            <div class="log" id="log"></div>
+          </section>
+        </div>
+
+        <div>
+          <!-- Protocol -->
+          <section class="panel" aria-label="Protocol">
+            <h2>Protocol <span class="tag">run steps in order</span></h2>
+            <ol class="steps" id="stepsList">
+              <li data-step="setup" class="active"><span class="num">1</span><div class="body"><div class="t">Setup and camera</div><div class="d">Grant camera access and confirm the setup checklist.</div></div><span class="st" data-st>ACTIVE</span></li>
+              <li data-step="calib"><span class="num">2</span><div class="body"><div class="t">Calibration</div><div class="d">Sit upright and still for about 3 s to set baseline angles.</div></div><span class="st" data-st>PENDING</span></li>
+              <li data-step="head"><span class="num">3</span><div class="body"><div class="t">Head tilt trials</div><div class="d">Tilt your head to one side and hold 6 s. Repeat 5 times.</div></div><span class="st" data-st>PENDING</span></li>
+              <li data-step="shoulder"><span class="num">4</span><div class="body"><div class="t">Shoulder tilt trials</div><div class="d">Drop one shoulder and hold 6 s. Repeat 5 times.</div></div><span class="st" data-st>PENDING</span></li>
+              <li data-step="work"><span class="num">5</span><div class="body"><div class="t">Ordinary work sample</div><div class="d">5 minutes of normal work: type, look around, reach. Expectation: zero detections.</div></div><span class="st" data-st>PENDING</span></li>
+              <li data-step="loss"><span class="num">6</span><div class="body"><div class="t">Landmark-loss test</div><div class="d">Cover the camera or step out of frame for 10 s. Evaluation must pause and fire nothing.</div></div><span class="st" data-st>PENDING</span></li>
+              <li data-step="results"><span class="num">7</span><div class="body"><div class="t">Results and export</div><div class="d">Review the verdict per cue and download the session CSV.</div></div><span class="st" data-st>PENDING</span></li>
+            </ol>
+
+            <div class="prompt-box" id="promptBox">
+              <div class="phase" id="promptPhase">Step 1 of 7 - Setup</div>
+              <div class="big" id="promptBig">Start the camera</div>
+              <p class="sub" id="promptSub">Press Enable camera below and choose Allow when your browser asks. The checklist is recommended setup only, it does not block the camera button. If no prompt appears, read the diagnostics under the button: they show whether the address, the embedding frame, or a saved site block is stopping the request.</p>
+              <div class="countdown" id="countdown" style="display:none">3</div>
+              <div class="prog" id="phaseProgWrap" style="display:none"><div id="phaseProg"></div></div>
+              <div id="setupControls">
+                <ul class="checklist" style="margin-top:12px">
+                  <li><span class="box" data-check></span><span><b>Camera at eye level.</b> The lens should be roughly level with your eyes, not looking up at you from the desk.</span></li>
+                  <li><span class="box" data-check></span><span><b>Fixed position.</b> Laptop stays put for the whole session. Do not move it between calibration and trials.</span></li>
+                  <li><span class="box" data-check></span><span><b>Good lighting.</b> Face and shoulders evenly lit from the front or side.</span></li>
+                  <li><span class="box" data-check></span><span><b>No backlight.</b> No bright window or lamp behind you; a backlit silhouette breaks landmark tracking.</span></li>
+                  <li><span class="box" data-check></span><span><b>Shoulders in frame.</b> Sit at your normal working distance so head and both shoulders are visible.</span></li>
+                </ul>
+                <p class="note">Tap each item to confirm it as you check your setup. The camera button works either way.</p>
+                <div class="btn-row">
+                  <button class="btn primary" id="btnCamera">Enable camera</button>
+                  <button class="btn" id="btnStopCamera" disabled>Stop camera</button>
+                  <button class="btn" id="btnEngine" style="display:none">Retry pose engine</button>
+                </div>
+                <p class="note" id="cameraMsg" style="margin-top:8px"></p>
+                <div class="diag" id="camDiag" aria-label="Camera diagnostics">
+                  <div class="diag-row"><span class="dk">Page address</span><span class="dv" id="dgSecure">checking...</span></div>
+                  <div class="diag-row"><span class="dk">Embedding</span><span class="dv" id="dgFrame">checking...</span></div>
+                  <div class="diag-row"><span class="dk">Camera policy</span><span class="dv" id="dgPolicy">checking...</span></div>
+                  <div class="diag-row"><span class="dk">Camera API</span><span class="dv" id="dgApi">checking...</span></div>
+                  <div class="diag-row"><span class="dk">Permission</span><span class="dv" id="dgPerm">checking...</span></div>
+                  <div class="diag-row"><span class="dk">Camera track</span><span class="dv" id="dgTrack">not started</span></div>
+                </div>
+                <div class="cam-error" id="camError" hidden></div>
+              </div>
+              <div class="btn-row" id="stepControls" style="display:none"></div>
+            </div>
+          </section>
+
+          <!-- Calibration readout -->
+          <section class="panel" aria-label="Calibration">
+            <h2>Calibration <span class="tag">baseline angles</span></h2>
+            <div class="readouts" style="grid-template-columns:1fr 1fr; margin-top:0">
+              <div class="readout"><div class="k">Baseline head tilt</div><div class="v"><span id="baseHead">--</span><small> deg</small></div></div>
+              <div class="readout"><div class="k">Baseline shoulder tilt</div><div class="v"><span id="baseSh">--</span><small> deg</small></div></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="thrHead">Head-tilt threshold (deg)</label><input id="thrHead" type="number" min="2" max="30" step="0.5" value="8"></div>
+              <div class="field"><label for="thrSh">Shoulder-tilt threshold (deg)</label><input id="thrSh" type="number" min="2" max="30" step="0.5" value="6"></div>
+            </div>
+            <p class="note" style="margin-top:6px">Set the thresholds before each run. They drive the detection rules, appear in the detector readouts, and are written into the CSV header next to the baselines.</p>
+            <p style="margin-top:8px">Calibration collects samples only while tracking is live; if you move out of frame the 3 s clock pauses with it. Recalibrate any time from step 2 if you change position.</p>
+          </section>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <section class="panel" aria-label="Results">
+        <h2>Results <span class="tag">pass criteria evaluated per cue</span></h2>
+        <div class="summary-grid">
+          <div class="readout"><div class="k">False detections in work sample</div><div class="v"><span id="resFalse">--</span><small> (target: 0)</small></div></div>
+          <div class="readout"><div class="k">Landmark-loss test</div><div class="v" style="font-size:14px; padding-top:4px"><span id="resLoss">Not run</span></div></div>
+          <div class="readout"><div class="k">Frames logged for CSV</div><div class="v"><span id="resFrames">0</span></div></div>
+        </div>
+
+        <h3 style="font-size:13.5px; margin:14px 0 6px">Head tilt trials</h3>
+        <div class="tbl-wrap"><table id="tblHead">
+          <thead><tr><th>Trial</th><th>Detected</th><th class="num">Head angle mean (deg)</th><th class="num">Head SD</th><th class="num">Shoulder mean (deg)</th><th class="num">Shoulder SD</th><th class="num">Samples</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+
+        <h3 style="font-size:13.5px; margin:16px 0 6px">Shoulder tilt trials</h3>
+        <div class="tbl-wrap"><table id="tblSh">
+          <thead><tr><th>Trial</th><th>Detected</th><th class="num">Shoulder angle mean (deg)</th><th class="num">Shoulder SD</th><th class="num">Head mean (deg)</th><th class="num">Head SD</th><th class="num">Samples</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+
+        <div class="verdict" id="verdictHead"><span class="head">HEAD TILT VERDICT: PENDING</span><ul><li>Waiting on trial, work-sample, and landmark-loss data.</li></ul></div>
+        <div class="verdict" id="verdictSh"><span class="head">SHOULDER TILT VERDICT: PENDING</span><ul><li>Waiting on trial, work-sample, and landmark-loss data.</li></ul></div>
+        <div class="verdict" id="verdictAll"><span class="head">OVERALL: PENDING</span><ul><li>Pass criteria per cue: at least 4 of 5 holds detected, AND zero false detections during ordinary work, AND evaluation paused on landmark loss with no detections fired.</li></ul></div>
+
+        <div class="btn-row">
+          <button class="btn primary" id="btnCsv" disabled>Download session CSV</button>
+          <button class="btn" id="btnReset">Reset session data</button>
+        </div>
+        <p class="note" style="margin-top:8px">CSV contains every per-frame measurement (timestamp, step, head_tilt, shoulder_tilt, cue_detected, plus tracking and deviation columns) followed by a per-trial summary section.</p>
+      </section>
+
+      <footer>
+        PoseGuard validation experiment - internal tool. Pose estimation: MediaPipe Pose Landmarker (Lite) via Tasks Vision, CPU delegate by default, one frame at a time, frames skipped while inference is busy. All processing on-device in this tab; no video or measurement leaves the machine except the CSV you download yourself.
+      </footer>
+    </div>
+
+    <script>
+      "use strict";
+      /* ================================================================
+         PoseGuard validation experiment
+         Engine: MediaPipe Tasks Vision Pose Landmarker Lite (CDN),
+         with the classic MediaPipe Pose solution (lite model) as a
+         fallback if the Tasks bundle cannot load in this browser.
+         Inference is throttled to ~12 checks/s, one frame at a time,
+         timed by elapsed time; frames are skipped while busy.
+         ================================================================ */
+      var MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+      var WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+      var VISION_ESM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+      var LEGACY_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/";
+
+      var PERSIST_MS = 5000;          // detection persistence requirement
+      var INFER_INTERVAL_MS = 84;     // ~12 checks per second
+      var STALE_MS = 600;             // results older than this reset timers
+      var EMA_ALPHA = 0.35;
+      var CALIB_MS = 3000;
+      var HOLD_MS = 6000;
+      var READY_MS = 3000;
+      var REST_MS = 3000;
+      var WORK_MS = 300000;
+      var LOSS_MS = 10000;
+      var TRIALS_PER_CUE = 5;
+
+      var CONNECTIONS = [
+        [0,1],[1,2],[2,3],[3,7],[0,4],[4,5],[5,6],[6,8],[9,10],[11,12],[11,13],[13,15],
+        [15,17],[15,19],[15,21],[17,19],[12,14],[14,16],[16,18],[16,20],[16,22],[18,20],
+        [11,23],[12,24],[23,24],[23,25],[24,26],[25,27],[26,28],[27,29],[28,30],[29,31],[30,31],[27,31],[28,32]
+      ];
+
+      function $(id) { return document.getElementById(id); }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+      function fmt(v, d) { return (v === null || v === undefined || isNaN(v)) ? "--" : Number(v).toFixed(d === undefined ? 1 : d); }
+      function wrapAngle(a) { while (a > 180) a -= 360; while (a < -180) a += 360; return a; }
+      /* Shortest signed angular difference a - b in degrees, in [-180, 180],
+         via atan2(sin, cos). Circular math: with a baseline near +174 deg, a
+         reading of -179 deg deviates by 7 deg, not 353 deg. Every deviation
+         (HUD, persistence timers, trial stats, CSV, verdict inputs) uses this;
+         a raw linear difference is never exported or compared. */
+      function circDev(a, b) {
+        var d = (a - b) * Math.PI / 180;
+        return Math.atan2(Math.sin(d), Math.cos(d)) * 180 / Math.PI;
+      }
+      function circMean(xs) {
+        if (!xs.length) return null;
+        var s = 0, c = 0;
+        xs.forEach(function (x) { var r = x * Math.PI / 180; s += Math.sin(r); c += Math.cos(r); });
+        return Math.atan2(s / xs.length, c / xs.length) * 180 / Math.PI;
+      }
+      function angleDeg(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax) * 180 / Math.PI; }
+      function mean(xs) { return xs.length ? xs.reduce(function (s, x) { return s + x; }, 0) / xs.length : null; }
+      function std(xs) {
+        if (xs.length < 2) return xs.length ? 0 : null;
+        var m = mean(xs);
+        return Math.sqrt(xs.reduce(function (s, x) { return s + (x - m) * (x - m); }, 0) / (xs.length - 1));
+      }
+      function nowISO() { return new Date().toISOString(); }
+
+      /* ---------------- state ---------------- */
+      var S = {
+        stream: null, engine: null, engineKind: null, busy: false,
+        lastInferAt: 0, lastResultAt: 0, inferCountWindow: [], fps: 0,
+        tracking: false, evalPaused: true,
+        smoothHead: null, smoothSh: null,
+        baseline: null,           // {head, sh}
+        step: "setup",
+        frames: [],               // per-frame CSV rows
+        sessionStart: performance.now(),
+        detectors: {
+          head: { beyondSince: null, latched: false, lastEventAt: 0 },
+          sh:   { beyondSince: null, latched: false, lastEventAt: 0 }
+        },
+        calib: null,              // {trackedMs, headSamples, shSamples, lastTick}
+        trialRun: null,           // {cue, idx, phase, phaseStart, phaseDur, samples, detected}
+        trials: { head: [], sh: [] },
+        work: null,               // {startAt, endsAt, falseCount, done, completed}
+        falseDetections: 0,
+        loss: null,               // {startAt, endsAt, lossObserved, lossSince, pausedObserved, detections, done}
+        lossResult: null,         // {pass, detail}
+        timerId: null
+      };
+
+      var els = {};
+      ["video","overlay","noCam","stage","camError","btnEngine","dgSecure","dgFrame","dgPolicy","dgApi","dgPerm","dgTrack","stCamera","stEngine","stTracking","stFps","stEval","dotCamera","dotTracking","dotEval",
+       "hudTrack","hudStep","hudEvent","hudHeadT","hudHeadBar","hudShT","hudShBar",
+       "roHead","roHeadDev","roSh","roShDev","cueHead","cueSh","cueHeadMeta","cueShMeta","cueHeadBar","cueShBar",
+       "thrHead","thrSh","log","frameCount","btnCamera","btnStopCamera","cameraMsg","setupControls","stepControls",
+       "promptPhase","promptBig","promptSub","countdown","phaseProgWrap","phaseProg","stepsList",
+       "baseHead","baseSh","resFalse","resLoss","resFrames","btnCsv","btnReset","verdictHead","verdictSh","verdictAll"
+      ].forEach(function (id) { els[id] = $(id); });
+
+      function log(msg) {
+        var t = new Date();
+        var hh = String(t.getHours()).padStart(2, "0"), mm = String(t.getMinutes()).padStart(2, "0"), ss = String(t.getSeconds()).padStart(2, "0");
+        var line = document.createElement("div");
+        line.innerHTML = '<span class="lt">' + hh + ":" + mm + ":" + ss + "</span>  ";
+        line.appendChild(document.createTextNode(msg));
+        els.log.appendChild(line);
+        els.log.scrollTop = els.log.scrollHeight;
+        while (els.log.children.length > 200) els.log.removeChild(els.log.firstChild);
+      }
+
+      function thresholds() {
+        return {
+          head: clamp(parseFloat(els.thrHead.value) || 8, 1, 40),
+          sh: clamp(parseFloat(els.thrSh.value) || 6, 1, 40)
+        };
+      }
+
+      /* ---------------- step / prompt UI ---------------- */
+      var STEP_ORDER = ["setup", "calib", "head", "shoulder", "work", "loss", "results"];
+      var STEP_LABEL = { setup: "SETUP", calib: "CALIBRATION", head: "HEAD TRIALS", shoulder: "SHOULDER TRIALS", work: "WORK SAMPLE", loss: "LANDMARK LOSS", results: "RESULTS" };
+      var STEP_PHASE = { setup: "Step 1 of 7 - Setup", calib: "Step 2 of 7 - Calibration", head: "Step 3 of 7 - Head tilt trials", shoulder: "Step 4 of 7 - Shoulder tilt trials", work: "Step 5 of 7 - Ordinary work sample", loss: "Step 6 of 7 - Landmark-loss test", results: "Step 7 of 7 - Results" };
+      var doneSteps = {};
+
+      function setStep(step) {
+        S.step = step;
+        var items = els.stepsList.querySelectorAll("li");
+        items.forEach(function (li) {
+          var s = li.getAttribute("data-step");
+          var st = li.querySelector("[data-st]");
+          li.classList.toggle("active", s === step);
+          if (doneSteps[s]) { li.classList.add("done"); st.textContent = "DONE"; }
+          else { li.classList.remove("done"); st.textContent = (s === step) ? "ACTIVE" : "PENDING"; }
+        });
+        els.hudStep.textContent = "STEP: " + STEP_LABEL[step];
+        els.promptPhase.textContent = STEP_PHASE[step];
+        els.setupControls.style.display = (step === "setup") ? "" : "none";
+        els.stepControls.style.display = (step === "setup") ? "none" : "";
+        renderStepControls();
+      }
+      function markDone(step) { doneSteps[step] = true; }
+
+      function setPrompt(big, sub) { els.promptBig.textContent = big; els.promptSub.textContent = sub; }
+      function showCountdown(text, frac) {
+        if (text === null) { els.countdown.style.display = "none"; els.phaseProgWrap.style.display = "none"; return; }
+        els.countdown.style.display = "";
+        els.countdown.textContent = text;
+        els.phaseProgWrap.style.display = "";
+        els.phaseProg.style.width = clamp(frac * 100, 0, 100) + "%";
+      }
+      function mkBtn(label, cls, fn) {
+        var b = document.createElement("button");
+        b.className = "btn" + (cls ? " " + cls : "");
+        b.textContent = label;
+        b.addEventListener("click", fn);
+        return b;
+      }
+      function renderStepControls() {
+        var c = els.stepControls;
+        c.innerHTML = "";
+        if (S.step === "calib") {
+          var b = mkBtn(S.baseline ? "Recalibrate baseline" : "Start calibration (3 s)", "primary", startCalibration);
+          b.disabled = !S.engine || !!S.calib;
+          c.appendChild(b);
+          if (S.baseline) c.appendChild(mkBtn("Continue to head trials", "", function () { gotoStep("head"); }));
+        } else if (S.step === "head" || S.step === "shoulder") {
+          var cue = S.step;
+          var done = (S.trials[cue === "head" ? "head" : "sh"].length >= TRIALS_PER_CUE);
+          var start = mkBtn("Begin " + (cue === "head" ? "head" : "shoulder") + " trials", "primary", function () { startTrials(cue); });
+          start.disabled = !S.baseline || !!S.trialRun || done;
+          c.appendChild(start);
+          if (S.trialRun) c.appendChild(mkBtn("Abort trials", "danger", abortTrials));
+          if (done) c.appendChild(mkBtn("Continue", "", function () { gotoStep(cue === "head" ? "shoulder" : "work"); }));
+        } else if (S.step === "work") {
+          var bw = mkBtn("Start 5-minute work sample", "primary", startWork);
+          bw.disabled = !S.baseline || !!S.work;
+          c.appendChild(bw);
+          if (S.work && !S.work.done) c.appendChild(mkBtn("End sample early", "danger", function () { finishWork(false); }));
+          if (S.work && S.work.done) c.appendChild(mkBtn("Continue", "", function () { gotoStep("loss"); }));
+        } else if (S.step === "loss") {
+          var bl = mkBtn("Start 10-second loss test", "primary", startLoss);
+          bl.disabled = !S.engine || !!S.loss;
+          c.appendChild(bl);
+          if (S.lossResult) c.appendChild(mkBtn("Continue to results", "", function () { gotoStep("results"); }));
+          if (S.lossResult && !S.lossResult.pass) c.appendChild(mkBtn("Re-run loss test", "", function () { S.lossResult = null; S.loss = null; els.resLoss.textContent = "Not run"; renderStepControls(); updateVerdicts(); }));
+        } else if (S.step === "results") {
+          c.appendChild(mkBtn("Download session CSV", "primary", downloadCsv));
+          c.appendChild(mkBtn("Back to protocol", "", function () { gotoStep("calib"); }));
+        }
+      }
+      function gotoStep(step) { setStep(step); updatePromptForStep(); }
+      function updatePromptForStep() {
+        if (S.step === "calib") setPrompt("Sit upright, look at the camera", "Use your normal working posture: back straight, head level, shoulders relaxed and even. Then start calibration and hold still for about 3 seconds of tracked time.");
+        else if (S.step === "head") setPrompt("Head tilt trials: 5 holds of 6 s", "On each GO, tilt your head to one side (ear toward shoulder) far enough to pass the threshold, and hold until the timer ends. Return upright during rests. A trial passes if the head cue is detected during the hold. Detection needs 5 s of persistence, so tilt promptly and hold steady.");
+        else if (S.step === "shoulder") setPrompt("Shoulder tilt trials: 5 holds of 6 s", "On each GO, drop one shoulder down (keep your head level) and hold until the timer ends. A trial passes if the shoulder cue is detected during the hold.");
+        else if (S.step === "work") setPrompt("Work normally for 5 minutes", "Type, read, look around, reach for things. Stay in your seat and stay in frame, but otherwise behave exactly as you would while working. Every detection fired here counts as a false detection. Expectation: zero.");
+        else if (S.step === "loss") setPrompt("Cover the camera or step out of frame", "When the 10 s window starts, cover the lens with your hand (or step fully out of frame) and stay covered for the whole window. The test passes if tracking loss is observed, evaluation pauses, and no detection fires.");
+        else if (S.step === "results") setPrompt("Review the verdict", "Per-cue verdicts and the full measurement log are in the Results panel below. Download the CSV to keep the session record.");
+      }
+</script>
+    <script>
+      "use strict";
+      /* ================= engine + camera ================= */
+      function setEngineStatus(txt) { els.stEngine.textContent = txt; }
+      function setCameraStatus(txt, cls) {
+        els.stCamera.innerHTML = "";
+        var d = document.createElement("span"); d.className = "dot" + (cls ? " " + cls : ""); d.id = "dotCamera";
+        els.stCamera.appendChild(d);
+        els.stCamera.appendChild(document.createTextNode(txt));
+      }
+
+      function loadScript(src) {
+        return new Promise(function (res, rej) {
+          var sc = document.createElement("script");
+          sc.src = src; sc.onload = res; sc.onerror = function () { rej(new Error("failed to load " + src)); };
+          document.head.appendChild(sc);
+        });
+      }
+
+      async function initEngine() {
+        setEngineStatus("Loading...");
+        // Primary: MediaPipe Tasks Vision Pose Landmarker Lite.
+        try {
+          var vision = await import(VISION_ESM);
+          var fileset = await vision.FilesetResolver.forVisionTasks(WASM_URL);
+          var opts = {
+            baseOptions: { modelAssetPath: MODEL_URL, delegate: "CPU" },
+            runningMode: "VIDEO", numPoses: 1,
+            minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5
+          };
+          var lm = null, lastErr = null;
+          for (var attempt = 0; attempt < 2 && !lm; attempt++) {
+            try { lm = await vision.PoseLandmarker.createFromOptions(fileset, opts); }
+            catch (e) {
+              lastErr = e;
+              if (attempt === 0) { opts.baseOptions.delegate = "GPU"; log("CPU delegate failed, retrying with GPU delegate."); }
+            }
+          }
+          if (!lm) throw lastErr || new Error("PoseLandmarker creation failed");
+          S.engine = lm; S.engineKind = "tasks";
+          setEngineStatus(opts.baseOptions.delegate === "GPU" ? "Tasks Vision Lite (GPU)" : "Tasks Vision Lite (CPU)");
+          log("Pose engine ready: MediaPipe Tasks Vision Pose Landmarker Lite, " + opts.baseOptions.delegate + " delegate.");
+          return true;
+        } catch (e) {
+          log("Tasks Vision load failed (" + (e && e.message ? e.message : e) + "). Falling back to classic MediaPipe Pose (lite model).");
+        }
+        // Fallback: classic MediaPipe Pose solution, modelComplexity 0 (lite).
+        try {
+          if (!window.Pose) await loadScript(LEGACY_BASE + "pose.js");
+          var pose = new window.Pose({ locateFile: function (f) { return LEGACY_BASE + f; } });
+          pose.setOptions({ modelComplexity: 0, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+          pose.onResults(function (res) {
+            S.busy = false;
+            var lms = (res && res.poseLandmarks) ? res.poseLandmarks : null;
+            onPoseResult(lms, performance.now());
+          });
+          S.engine = pose; S.engineKind = "legacy";
+          setEngineStatus("MediaPipe Pose lite (fallback)");
+          log("Pose engine ready: classic MediaPipe Pose solution, lite model (complexity 0).");
+          return true;
+        } catch (e2) {
+          setEngineStatus("Failed to load");
+          log("Pose engine failed to load: " + (e2 && e2.message ? e2.message : e2) + ". Check the network connection (CDN) and reload.");
+          return false;
+        }
+      }
+
+      /* ---------- camera diagnostics + error surfacing ----------
+         The old flow failed silently in three ways: the Enable button
+         was disabled until the checklist was fully ticked (so no click
+         ever reached getUserMedia and no prompt could appear), any
+         refusal was written to a small note under the button, and the
+         empty <video> element painted black over the "camera is off"
+         placeholder, making a never-started camera look like a dead
+         feed. The diagnostics below state, on the page, exactly which
+         layer is blocking the camera: address security, the embedding
+         frame's Permissions-Policy, a saved site block, a busy device,
+         or a granted stream that delivers no frames. */
+      function showCamError(html) { els.camError.innerHTML = html; els.camError.hidden = false; }
+      function clearCamError() { els.camError.hidden = true; els.camError.innerHTML = ""; }
+
+      function renderDiag() {
+        var secure = !!window.isSecureContext;
+        els.dgSecure.textContent = secure ? "Secure (HTTPS or localhost) - the browser allows camera requests" : "NOT secure - browsers block the camera on plain HTTP pages";
+        els.dgSecure.className = "dv " + (secure ? "ok" : "bad");
+        var framed = false;
+        try { framed = window.self !== window.top; } catch (e) { framed = true; }
+        els.dgFrame.textContent = framed ? "Embedded in another page (iframe). The prompt only appears if the outer page allows the camera for embedded pages." : "Top-level page - nothing between this page and the browser";
+        els.dgFrame.className = "dv" + (framed ? " warn" : " ok");
+        var policyTxt = "Not reported by this browser", policyCls = "dv";
+        try {
+          if (document.permissionsPolicy && document.permissionsPolicy.allowsFeature) {
+            var allowed = document.permissionsPolicy.allowsFeature("camera");
+            policyTxt = allowed ? "Camera allowed for this page" : "BLOCKED by the embedding page's Permissions-Policy - no prompt can appear inside this frame";
+            policyCls = "dv " + (allowed ? "ok" : "bad");
+          }
+        } catch (e) { /* not reported */ }
+        els.dgPolicy.textContent = policyTxt; els.dgPolicy.className = policyCls;
+        var hasApi = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        els.dgApi.textContent = hasApi ? "Available (navigator.mediaDevices.getUserMedia)" : "Unavailable in this browser or context";
+        els.dgApi.className = "dv " + (hasApi ? "ok" : "bad");
+        if (navigator.permissions && navigator.permissions.query) {
+          navigator.permissions.query({ name: "camera" }).then(function (st) {
+            var map = {
+              granted: "Granted",
+              denied: "Denied - the browser is refusing without asking (saved block or policy)",
+              prompt: "Not decided yet - the browser should ask when you press Enable camera"
+            };
+            els.dgPerm.textContent = map[st.state] || st.state;
+            els.dgPerm.className = "dv " + (st.state === "granted" ? "ok" : st.state === "denied" ? "bad" : "warn");
+            st.onchange = renderDiag;
+          }).catch(function () { els.dgPerm.textContent = "Browser does not report it"; });
+        } else {
+          els.dgPerm.textContent = "Browser does not report it";
+        }
+      }
+
+      async function startCamera() {
+        clearCamError();
+        els.cameraMsg.textContent = "Requesting camera... watch for the browser permission prompt near the address bar.";
+        renderDiag();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          var why = !window.isSecureContext
+            ? "This page is not in a secure context. Camera access requires the page to be served over HTTPS or on localhost."
+            : "This browser does not expose the camera API to this page. If the page is embedded inside another app, the embedding frame may be withholding it.";
+          showCamError("<b>Camera API unavailable.</b> " + why);
+          els.cameraMsg.textContent = "";
+          log("getUserMedia unavailable: " + why);
+          setCameraStatus("Unavailable", "bad");
+          return;
+        }
+        var stream = null, lastErr = null;
+        var attempts = [
+          { video: { width: { ideal: 960 }, height: { ideal: 720 }, facingMode: "user" }, audio: false },
+          { video: true, audio: false }
+        ];
+        for (var i = 0; i < attempts.length && !stream; i++) {
+          try { stream = await navigator.mediaDevices.getUserMedia(attempts[i]); }
+          catch (e) {
+            lastErr = e;
+            if (e && (e.name === "OverconstrainedError" || e.name === "NotFoundError") && i + 1 < attempts.length) {
+              log("Camera constraints not satisfiable (" + e.name + "), retrying with basic constraints.");
+              continue;
+            }
+            break;
+          }
+        }
+        if (!stream) {
+          var name = lastErr && lastErr.name ? lastErr.name : "Error";
+          var steps = "";
+          if (name === "NotAllowedError" || name === "SecurityError") {
+            steps = "<b>Permission was refused (" + name + ") and no prompt was shown.</b> That happens when (1) the camera was previously blocked for this site, or (2) this page sits in an embedded frame that does not allow the camera. Fix for (1): click the lock / tune icon at the left of the address bar, open Site settings, set Camera to Allow, reload, then press Enable camera again. Fix for (2): open this page as the top-level page in its own browser tab (the app's open-in-browser / full-screen option), then press Enable camera there.";
+          } else if (name === "NotReadableError" || name === "AbortError") {
+            steps = "<b>The camera is busy or unreadable (" + name + ").</b> Another app (Zoom, Teams, another browser tab) is likely holding the webcam. Close it, wait a few seconds, and press Enable camera again.";
+          } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+            steps = "<b>No camera device was found (" + name + ").</b> Check that the webcam is connected and not disabled in system settings, then try again.";
+          } else {
+            steps = "<b>Camera request failed (" + name + ").</b> " + (lastErr && lastErr.message ? lastErr.message : "");
+          }
+          showCamError(steps);
+          els.cameraMsg.textContent = "";
+          log("Camera request failed: " + name + " - " + (lastErr && lastErr.message ? lastErr.message : ""));
+          setCameraStatus("Blocked", "bad");
+          renderDiag();
+          return;
+        }
+        S.stream = stream;
+        var track = stream.getVideoTracks()[0];
+        if (track) {
+          var stg = {};
+          try { stg = track.getSettings(); } catch (e) { /* settings optional */ }
+          els.dgTrack.textContent = (track.label || "Camera") + (stg.width ? " - " + stg.width + "x" + stg.height : "") + ", state: " + track.readyState;
+          els.dgTrack.className = "dv ok";
+        }
+        els.video.srcObject = stream;
+        var playErr = null;
+        try { await els.video.play(); } catch (e) { playErr = e; }
+        if (playErr) log("video.play() reported: " + (playErr.message || playErr) + " - continuing, the stream is attached.");
+        els.noCam.style.display = "none";
+        els.stage.classList.add("live");
+        setCameraStatus("On", "on");
+        els.btnStopCamera.disabled = false;
+        els.btnCamera.disabled = true;
+        els.cameraMsg.textContent = "Camera is on. If the picture above is still black after a few seconds, another app may be holding the webcam: close it, then Stop camera and Enable camera again.";
+        log("Camera started" + (track && track.label ? ": " + track.label : "") + ". Loading pose engine from CDN.");
+        // A granted stream that delivers no frames is the classic black-feed
+        // failure: detect it and say so instead of sitting on a black box.
+        var waited = 0;
+        var frameTimer = setInterval(function () {
+          waited += 250;
+          if (!S.stream) { clearInterval(frameTimer); return; }
+          if (els.video.videoWidth > 0) {
+            clearInterval(frameTimer);
+            log("Camera frames arriving: " + els.video.videoWidth + "x" + els.video.videoHeight + ".");
+            els.cameraMsg.textContent = "Camera live: " + els.video.videoWidth + "x" + els.video.videoHeight + ".";
+          } else if (waited >= 3000) {
+            clearInterval(frameTimer);
+            showCamError("<b>The browser granted the camera but no picture frames are arriving (black feed).</b> This usually means another app is holding the webcam, or the camera is covered or disabled at the system level. Close Zoom / Teams / other tabs using the camera, check the laptop camera privacy switch, then Stop camera and Enable camera again.");
+            log("Camera granted but videoWidth still 0 after 3 s: no frames arriving.");
+          }
+        }, 250);
+        var ok = await initEngine();
+        els.btnEngine.style.display = ok ? "none" : "";
+        if (ok) {
+          markDone("setup");
+          gotoStep("calib");
+          log("Setup complete. Next: calibration.");
+        } else {
+          els.cameraMsg.textContent = "Camera is live, but the pose engine did not load. The feed above is fine; check the network connection and press Retry pose engine.";
+        }
+        renderStepControls();
+        renderDiag();
+      }
+
+      function stopCamera() {
+        if (S.stream) { S.stream.getTracks().forEach(function (t) { t.stop(); }); S.stream = null; }
+        els.video.srcObject = null;
+        els.noCam.style.display = "";
+        els.stage.classList.remove("live");
+        clearCamError();
+        els.dgTrack.textContent = "not started";
+        els.dgTrack.className = "dv";
+        setCameraStatus("Off", "");
+        els.btnStopCamera.disabled = true;
+        els.btnCamera.disabled = false;
+        S.tracking = false; S.evalPaused = true;
+        updateTrackingUI();
+        log("Camera stopped.");
+      }
+
+      /* ================= inference loop =================
+         Elapsed-time throttle: a check runs only if at least
+         INFER_INTERVAL_MS passed since the last one. While an
+         inference is in flight, further checks are skipped. */
+      function inferTick() {
+        var v = els.video;
+        if (!S.engine || !S.stream || v.readyState < 2 || !v.videoWidth) return;
+        var now = performance.now();
+        if (now - S.lastInferAt < INFER_INTERVAL_MS) return;
+        if (S.busy) return; // one frame at a time; skip while busy
+        S.lastInferAt = now;
+        if (S.engineKind === "tasks") {
+          S.busy = true;
+          try {
+            var res = S.engine.detectForVideo(v, now);
+            var lms = (res && res.landmarks && res.landmarks.length) ? res.landmarks[0] : null;
+            onPoseResult(lms, now);
+          } catch (e) {
+            // transient errors: skip this frame
+          }
+          S.busy = false;
+        } else if (S.engineKind === "legacy") {
+          S.busy = true;
+          S.engine.send({ image: v }).catch(function () { S.busy = false; });
+        }
+      }
+      setInterval(inferTick, 30);
+      setInterval(hudTick, 120);
+
+      /* ================= pose processing ================= */
+      function onPoseResult(lms, ts) {
+        S.lastResultAt = ts;
+        S.inferCountWindow.push(ts);
+        while (S.inferCountWindow.length && ts - S.inferCountWindow[0] > 1000) S.inferCountWindow.shift();
+        S.fps = S.inferCountWindow.length;
+
+        var visible = false;
+        if (lms && lms.length > 12) {
+          var vis = function (p) { return p && (p.visibility === undefined || p.visibility > 0.4); };
+          visible = vis(lms[7]) && vis(lms[8]) && vis(lms[11]) && vis(lms[12]);
+        }
+
+        if (!visible) {
+          // Landmark loss: evaluation pauses, persistence timers reset.
+          if (S.tracking) log("Landmarks lost. Evaluation paused, persistence timers reset.");
+          S.tracking = false;
+          S.evalPaused = true;
+          resetDetectors();
+          drawOverlay(null);
+          noteLossFrame(ts);
+          logFrame(ts, null, null, "");
+          updateTrackingUI();
+          return;
+        }
+
+        S.tracking = true;
+        S.evalPaused = false;
+        noteTrackingFrame(ts);
+
+        var earA = angleDeg(lms[7].x, lms[7].y, lms[8].x, lms[8].y);
+        var shA = angleDeg(lms[11].x, lms[11].y, lms[12].x, lms[12].y);
+        var headRaw = circDev(earA, shA);
+        var shRaw = wrapAngle(shA);
+        if (S.smoothHead === null) { S.smoothHead = headRaw; S.smoothSh = shRaw; }
+        else {
+          S.smoothHead = wrapAngle(S.smoothHead + EMA_ALPHA * circDev(headRaw, S.smoothHead));
+          S.smoothSh = wrapAngle(S.smoothSh + EMA_ALPHA * circDev(shRaw, S.smoothSh));
+        }
+
+        drawOverlay(lms);
+        feedCalibration(ts);
+        feedTrialSample();
+        var fired = runDetectors(ts);
+        logFrame(ts, S.smoothHead, S.smoothSh, fired);
+        updateTrackingUI();
+      }
+
+      function resetDetectors() {
+        S.detectors.head.beyondSince = null; S.detectors.head.latched = false;
+        S.detectors.sh.beyondSince = null; S.detectors.sh.latched = false;
+      }
+
+      /* Returns "" or the cue(s) that fired on this frame: "head"/"shoulder". */
+      function runDetectors(ts) {
+        if (!S.baseline) return "";
+        var th = thresholds();
+        var devs = { head: circDev(S.smoothHead, S.baseline.head), sh: circDev(S.smoothSh, S.baseline.sh) };
+        var firedList = [];
+        [["head", "head"], ["sh", "shoulder"]].forEach(function (pair) {
+          var key = pair[0], label = pair[1];
+          var d = S.detectors[key];
+          var beyond = Math.abs(devs[key]) > th[key];
+          if (beyond) {
+            if (d.beyondSince === null) d.beyondSince = ts;
+            if (!d.latched && ts - d.beyondSince >= PERSIST_MS) {
+              d.latched = true; d.lastEventAt = ts;
+              firedList.push(label);
+              onCueDetected(key, ts);
+            }
+          } else {
+            d.beyondSince = null; d.latched = false;
+          }
+        });
+        return firedList.join("+");
+      }
+
+      function onCueDetected(key, ts) {
+        var label = key === "head" ? "Head tilt" : "Shoulder tilt";
+        flashEvent(label.toUpperCase() + " DETECTED");
+        if (S.trialRun && S.trialRun.phase === "hold" && S.trialRun.cue === key) {
+          if (!S.trialRun.detected) log("Trial " + (S.trialRun.idx + 1) + " (" + S.trialRun.cue + "): cue detected during hold.");
+          S.trialRun.detected = true;
+        }
+        if (S.work && !S.work.done && S.step === "work") {
+          S.falseDetections++;
+          els.resFalse.textContent = String(S.falseDetections);
+          log("FALSE DETECTION during work sample: " + label + ". Total: " + S.falseDetections + ".");
+          updateVerdicts();
+        }
+        if (S.loss && !S.loss.done && S.step === "loss") {
+          S.loss.detections++;
+          log("Detection fired during landmark-loss window: " + label + ". This fails the loss test.");
+        }
+      }
+
+      function logFrame(ts, head, sh, fired) {
+        var devH = (head !== null && S.baseline) ? circDev(head, S.baseline.head) : null;
+        var devS = (sh !== null && S.baseline) ? circDev(sh, S.baseline.sh) : null;
+        S.frames.push({
+          t: nowISO(), elapsed: ((ts - S.sessionStart) / 1000).toFixed(2), step: S.step,
+          head: head, sh: sh, fired: fired || "", tracking: S.tracking ? 1 : 0, devH: devH, devS: devS
+        });
+        els.frameCount.textContent = S.frames.length + " frames logged";
+        els.resFrames.textContent = String(S.frames.length);
+        els.btnCsv.disabled = S.frames.length === 0;
+      }
+
+      /* -------- landmark-loss accounting -------- */
+      function noteLossFrame(ts) {
+        if (S.loss && !S.loss.done && S.step === "loss") {
+          if (S.loss.lossSince === null) S.loss.lossSince = ts;
+          if (ts - S.loss.lossSince >= 400) {
+            if (!S.loss.lossObserved) log("Loss test: landmark loss observed, evaluation is paused.");
+            S.loss.lossObserved = true;
+            S.loss.pausedObserved = true; // evalPaused is true whenever landmarks are missing
+          }
+        }
+      }
+      function noteTrackingFrame(ts) {
+        if (S.loss && !S.loss.done) S.loss.lossSince = null;
+      }
+
+      /* ================= overlay drawing ================= */
+      function drawOverlay(lms) {
+        var v = els.video, c = els.overlay;
+        if (!v.videoWidth) return;
+        if (c.width !== v.videoWidth || c.height !== v.videoHeight) { c.width = v.videoWidth; c.height = v.videoHeight; }
+        var ctx = c.getContext("2d");
+        ctx.clearRect(0, 0, c.width, c.height);
+        if (!lms) return;
+        ctx.lineWidth = Math.max(2, c.width / 320);
+        ctx.strokeStyle = "rgba(87,184,119,0.9)";
+        ctx.beginPath();
+        CONNECTIONS.forEach(function (pr) {
+          var a = lms[pr[0]], b = lms[pr[1]];
+          if (!a || !b) return;
+          if ((a.visibility !== undefined && a.visibility < 0.3) || (b.visibility !== undefined && b.visibility < 0.3)) return;
+          ctx.moveTo(a.x * c.width, a.y * c.height);
+          ctx.lineTo(b.x * c.width, b.y * c.height);
+        });
+        ctx.stroke();
+        function emph(a, b, color) {
+          if (!a || !b) return;
+          ctx.strokeStyle = color; ctx.lineWidth = Math.max(3, c.width / 220);
+          ctx.beginPath(); ctx.moveTo(a.x * c.width, a.y * c.height); ctx.lineTo(b.x * c.width, b.y * c.height); ctx.stroke();
+        }
+        emph(lms[7], lms[8], "rgba(224,162,60,0.95)");
+        emph(lms[11], lms[12], "rgba(94,178,224,0.95)");
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        lms.forEach(function (p, i) {
+          if (!p || (p.visibility !== undefined && p.visibility < 0.3)) return;
+          var r = (i === 7 || i === 8 || i === 11 || i === 12) ? Math.max(4, c.width / 130) : Math.max(2, c.width / 300);
+          ctx.beginPath(); ctx.arc(p.x * c.width, p.y * c.height, r, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+
+      /* ================= HUD ================= */
+      var eventFlashUntil = 0;
+      function flashEvent(txt) {
+        els.hudEvent.textContent = txt;
+        els.hudEvent.className = "hud-chip bad";
+        els.hudEvent.style.display = "";
+        eventFlashUntil = performance.now() + 2500;
+      }
+      function setDotText(container, dotEl, txt) {
+        var nodes = Array.prototype.slice.call(container.childNodes);
+        nodes.forEach(function (n) { if (n.nodeType === 3) container.removeChild(n); });
+        container.appendChild(document.createTextNode(txt));
+      }
+      function updateTrackingUI() {
+        els.dotTracking.className = "dot " + (S.tracking ? "on" : "bad");
+        setDotText(els.stTracking, els.dotTracking, S.tracking ? "Live" : "Lost");
+        els.hudTrack.textContent = "TRACKING: " + (S.tracking ? "LIVE" : "LOST - EVAL PAUSED");
+        els.hudTrack.className = "hud-chip " + (S.tracking ? "good" : "bad");
+        els.dotEval.className = "dot " + (S.evalPaused ? "warn" : "on");
+        setDotText(els.stEval, els.dotEval, S.evalPaused ? "Paused" : "Running");
+      }
+      function hudTick() {
+        els.stFps.innerHTML = S.fps + " <small>checks/s</small>";
+        if (S.engine && S.stream && S.lastResultAt > 0 && performance.now() - S.lastResultAt > STALE_MS) {
+          if (S.tracking) log("Results stale (over " + STALE_MS + " ms). Timers reset, evaluation paused.");
+          S.tracking = false; S.evalPaused = true; resetDetectors(); updateTrackingUI();
+        }
+        if (eventFlashUntil && performance.now() > eventFlashUntil) { els.hudEvent.style.display = "none"; eventFlashUntil = 0; }
+
+        var th = thresholds();
+        els.roHead.textContent = fmt(S.smoothHead);
+        els.roSh.textContent = fmt(S.smoothSh);
+        var devH = (S.baseline && S.smoothHead !== null) ? circDev(S.smoothHead, S.baseline.head) : null;
+        var devS = (S.baseline && S.smoothSh !== null) ? circDev(S.smoothSh, S.baseline.sh) : null;
+        els.roHeadDev.textContent = fmt(devH);
+        els.roShDev.textContent = fmt(devS);
+
+        [["head", els.hudHeadBar, els.hudHeadT, els.cueHeadBar, els.cueHeadMeta, els.cueHead, devH, th.head],
+         ["sh", els.hudShBar, els.hudShT, els.cueShBar, els.cueShMeta, els.cueSh, devS, th.sh]].forEach(function (r) {
+          var d = S.detectors[r[0]];
+          var held = (d.beyondSince !== null && S.tracking) ? (performance.now() - d.beyondSince) / 1000 : 0;
+          var pct = clamp(held / 5 * 100, 0, 100);
+          r[1].style.width = pct + "%"; r[1].className = held > 0 ? "hot" : "";
+          r[2].textContent = held.toFixed(1) + "s / 5s";
+          r[3].style.width = pct + "%";
+          r[4].textContent = "dev " + fmt(r[6]) + " deg / threshold " + r[7] + " deg - persistence " + held.toFixed(1) + "s";
+          r[5].classList.toggle("fired", d.latched);
+        });
+      }
+</script>
+    <script>
+      "use strict";
+      /* ================= protocol timer =================
+         One 100 ms ticker drives calibration, trials, work sample,
+         and the loss test. Phase timing uses elapsed wall time. */
+      setInterval(protocolTick, 100);
+      function protocolTick() {
+        var now = performance.now();
+        // --- calibration progress UI (accumulation happens per-frame) ---
+        if (S.calib) {
+          var frac = clamp(S.calib.trackedMs / CALIB_MS, 0, 1);
+          showCountdown(S.tracking ? Math.ceil((CALIB_MS - S.calib.trackedMs) / 1000) + "" : "PAUSED", frac);
+          if (!S.tracking) setPrompt("Calibration paused - tracking lost", "Move back into frame, upright and still. The calibration clock only runs while landmarks are tracked.");
+          return;
+        }
+        // --- trials ---
+        if (S.trialRun) {
+          var tr = S.trialRun;
+          var remain = tr.phaseStart + tr.phaseDur - now;
+          var fracT = clamp(1 - remain / tr.phaseDur, 0, 1);
+          if (tr.phase === "ready") { showCountdown(Math.ceil(remain / 1000) + "", fracT); }
+          else if (tr.phase === "hold") { showCountdown((Math.max(0, remain) / 1000).toFixed(1), fracT); }
+          else { showCountdown(Math.ceil(remain / 1000) + "", fracT); }
+          if (remain <= 0) advanceTrialPhase();
+          return;
+        }
+        // --- work sample ---
+        if (S.work && !S.work.done) {
+          var remW = S.work.endsAt - now;
+          var mins = Math.floor(Math.max(0, remW) / 60000), secs = Math.floor((Math.max(0, remW) % 60000) / 1000);
+          showCountdown(mins + ":" + String(secs).padStart(2, "0"), clamp(1 - remW / WORK_MS, 0, 1));
+          setPrompt("Work sample running - " + S.falseDetections + " false detection" + (S.falseDetections === 1 ? "" : "s") + " so far", "Keep working normally. Stay seated and in frame. Do not hold deliberate tilts in this step.");
+          if (remW <= 0) finishWork(true);
+          return;
+        }
+        // --- landmark-loss test ---
+        if (S.loss && !S.loss.done) {
+          var remL = S.loss.endsAt - now;
+          showCountdown((Math.max(0, remL) / 1000).toFixed(1), clamp(1 - remL / LOSS_MS, 0, 1));
+          var status = S.loss.lossObserved ? "Landmarks lost, evaluation paused. Stay covered." : "No landmark loss yet. Cover the lens or step fully out of frame.";
+          setPrompt("Landmark-loss test running", status);
+          if (remL <= 0) finishLoss();
+          return;
+        }
+      }
+
+      /* ================= calibration ================= */
+      function startCalibration() {
+        if (!S.engine) { log("Calibration needs the camera and pose engine running."); return; }
+        S.calib = { trackedMs: 0, lastFrameAt: null, headSamples: [], shSamples: [] };
+        resetDetectors();
+        setPrompt("Calibrating - hold still", "Sit upright, head level, shoulders even. Collecting baseline samples while tracking is live.");
+        log("Calibration started (about 3 s of tracked time).");
+        renderStepControls();
+      }
+      function feedCalibration(ts) {
+        if (!S.calib || !S.tracking) { if (S.calib) S.calib.lastFrameAt = null; return; }
+        var c = S.calib;
+        if (c.lastFrameAt !== null) c.trackedMs += Math.min(ts - c.lastFrameAt, 250);
+        c.lastFrameAt = ts;
+        c.headSamples.push(S.smoothHead);
+        c.shSamples.push(S.smoothSh);
+        if (c.trackedMs >= CALIB_MS && c.headSamples.length >= 15) {
+          S.baseline = { head: circMean(c.headSamples), sh: circMean(c.shSamples) };
+          S.calib = null;
+          els.baseHead.textContent = fmt(S.baseline.head);
+          els.baseSh.textContent = fmt(S.baseline.sh);
+          showCountdown(null);
+          markDone("calib");
+          log("Calibration complete. Baseline head " + fmt(S.baseline.head) + " deg, shoulder " + fmt(S.baseline.sh) + " deg, from " + c.headSamples.length + " samples.");
+          setPrompt("Baseline set", "Head baseline " + fmt(S.baseline.head) + " deg, shoulder baseline " + fmt(S.baseline.sh) + " deg. Continue to the head tilt trials.");
+          renderStepControls();
+          gotoStep("head");
+        }
+      }
+
+      /* ================= trials ================= */
+      function startTrials(cue) {
+        if (!S.baseline) { log("Trials need a calibration baseline first."); return; }
+        S.trials[cue] = [];
+        renderTables(); updateVerdicts();
+        S.trialRun = { cue: cue, idx: 0, phase: "ready", phaseStart: performance.now(), phaseDur: READY_MS, samples: [], detected: false };
+        log("Starting " + cue + " trials: " + TRIALS_PER_CUE + " holds of 6 s.");
+        trialPrompt();
+        renderStepControls();
+      }
+      function trialPrompt() {
+        var tr = S.trialRun; if (!tr) return;
+        var cueName = tr.cue === "head" ? "head" : "shoulder";
+        var n = tr.idx + 1;
+        if (tr.phase === "ready") setPrompt("Trial " + n + " of " + TRIALS_PER_CUE + " - get ready", "Return to upright. On GO, tilt your " + cueName + " and hold. Tilting starts in a few seconds.");
+        else if (tr.phase === "hold") setPrompt("GO - hold the " + cueName + " tilt", "Hold it steady, beyond the threshold, until the timer ends. Detection needs 5 s of persistence inside this 6 s hold.");
+        else setPrompt("Rest - return upright", "Relax back to your calibrated upright posture before the next trial.");
+      }
+      function advanceTrialPhase() {
+        var tr = S.trialRun; if (!tr) return;
+        var now = performance.now();
+        if (tr.phase === "ready") {
+          tr.phase = "hold"; tr.phaseStart = now; tr.phaseDur = HOLD_MS; tr.samples = []; tr.detected = false;
+          trialPrompt();
+        } else if (tr.phase === "hold") {
+          var res = {
+            n: tr.idx + 1, detected: tr.detected, count: tr.samples.length,
+            headMean: mean(tr.samples.map(function (s) { return s.head; })),
+            headStd: std(tr.samples.map(function (s) { return s.head; })),
+            shMean: mean(tr.samples.map(function (s) { return s.sh; })),
+            shStd: std(tr.samples.map(function (s) { return s.sh; }))
+          };
+          S.trials[tr.cue].push(res);
+          log("Trial " + res.n + " (" + tr.cue + ") recorded: " + (res.detected ? "DETECTED" : "NOT DETECTED") + ", " + res.count + " samples.");
+          renderTables(); updateVerdicts();
+          if (tr.idx + 1 >= TRIALS_PER_CUE) {
+            S.trialRun = null;
+            showCountdown(null);
+            markDone(tr.cue === "head" ? "head" : "shoulder");
+            setPrompt((tr.cue === "head" ? "Head" : "Shoulder") + " trials complete", S.trials[tr.cue].filter(function (r) { return r.detected; }).length + " of " + TRIALS_PER_CUE + " holds detected. Continue to the next step.");
+            renderStepControls();
+            gotoStep(tr.cue === "head" ? "shoulder" : "work");
+            var doneCue = tr.cue;
+            setTimeout(function () { if (!S.trialRun) updatePromptForStepKeep(doneCue); }, 0);
+            return;
+          }
+          tr.phase = "rest"; tr.phaseStart = now; tr.phaseDur = REST_MS;
+          trialPrompt();
+        } else { // rest -> next ready
+          tr.idx++; tr.phase = "ready"; tr.phaseStart = now; tr.phaseDur = READY_MS;
+          trialPrompt();
+        }
+      }
+      function updatePromptForStepKeep(cue) { /* prompt already set for the completed set; leave as-is */ }
+      function feedTrialSample() {
+        var tr = S.trialRun;
+        if (tr && tr.phase === "hold" && S.tracking) {
+          tr.samples.push({ head: S.baseline ? circDev(S.smoothHead, S.baseline.head) : S.smoothHead, sh: S.baseline ? circDev(S.smoothSh, S.baseline.sh) : S.smoothSh });
+        }
+      }
+      function abortTrials() {
+        if (!S.trialRun) return;
+        log("Trials aborted by operator. Recorded trials kept: head " + S.trials.head.length + ", shoulder " + S.trials.sh.length + ".");
+        S.trialRun = null;
+        showCountdown(null);
+        setPrompt("Trials aborted", "Partial results are kept in the table. You can restart this trial set from the beginning.");
+        renderStepControls();
+      }
+
+      /* ================= work sample ================= */
+      function startWork() {
+        var now = performance.now();
+        S.work = { startAt: now, endsAt: now + WORK_MS, done: false, completed: false };
+        S.falseDetections = 0;
+        els.resFalse.textContent = "0";
+        log("Work sample started: 5 minutes of ordinary work. Counting false detections.");
+        renderStepControls();
+      }
+      function finishWork(completed) {
+        if (!S.work || S.work.done) return;
+        S.work.done = true; S.work.completed = completed;
+        showCountdown(null);
+        markDone("work");
+        log("Work sample " + (completed ? "complete" : "ended early") + ". False detections: " + S.falseDetections + " (target 0).");
+        setPrompt("Work sample " + (completed ? "complete" : "ended early"), S.falseDetections + " false detection(s) counted. " + (completed ? "" : "Note: the sample was cut short, so treat the false-detection evidence as partial. ") + "Continue to the landmark-loss test.");
+        updateVerdicts();
+        renderStepControls();
+        gotoStep("loss");
+        setPrompt("Work sample " + (completed ? "complete" : "ended early"), S.falseDetections + " false detection(s) counted. Continue to the landmark-loss test when ready.");
+      }
+
+      /* ================= landmark-loss test ================= */
+      function startLoss() {
+        var now = performance.now();
+        S.loss = { startAt: now, endsAt: now + LOSS_MS, lossSince: null, lossObserved: false, pausedObserved: false, detections: 0, done: false };
+        S.lossResult = null;
+        log("Landmark-loss test started: 10 s window. Cover the camera or step out of frame now.");
+        setPrompt("Cover the camera now", "Keep the lens covered (or stay out of frame) for the full 10 s window.");
+        renderStepControls();
+      }
+      function finishLoss() {
+        if (!S.loss || S.loss.done) return;
+        S.loss.done = true;
+        showCountdown(null);
+        var L = S.loss;
+        var pass = L.lossObserved && L.pausedObserved && L.detections === 0;
+        var detail;
+        if (!L.lossObserved) detail = "FAIL - no landmark loss was observed in the window. The camera was not covered, or landmarks never dropped. Re-run the test.";
+        else if (L.detections > 0) detail = "FAIL - " + L.detections + " detection(s) fired during the loss window.";
+        else detail = "PASS - landmarks lost, evaluation paused, zero detections during the gap.";
+        S.lossResult = { pass: pass, detail: detail };
+        els.resLoss.textContent = pass ? "PASS" : "FAIL";
+        markDone("loss");
+        log("Landmark-loss test finished: " + detail);
+        setPrompt("Loss test finished", detail + " Uncover the camera and continue to results.");
+        updateVerdicts();
+        renderStepControls();
+        gotoStep("results");
+        setPrompt("Loss test finished", detail);
+      }
+
+      /* ================= results + verdicts ================= */
+      function renderTables() {
+        fillTable($("tblHead").querySelector("tbody"), S.trials.head, "head");
+        fillTable($("tblSh").querySelector("tbody"), S.trials.sh, "sh");
+      }
+      function fillTable(tbody, rows, cue) {
+        var labels = cue === "head"
+          ? ["Trial", "Detected", "Head angle mean (deg)", "Head SD", "Shoulder mean (deg)", "Shoulder SD", "Samples"]
+          : ["Trial", "Detected", "Shoulder angle mean (deg)", "Shoulder SD", "Head mean (deg)", "Head SD", "Samples"];
+        function rowHtml(cells) {
+          return cells.map(function (c, i) {
+            var cls = i >= 2 ? ' class="num"' : "";
+            return "<td" + cls + ' data-label="' + labels[i] + '">' + c + "</td>";
+          }).join("");
+        }
+        tbody.innerHTML = "";
+        for (var i = 0; i < TRIALS_PER_CUE; i++) {
+          var r = rows[i];
+          var tr = document.createElement("tr");
+          if (!r) {
+            tr.innerHTML = rowHtml(["Trial " + (i + 1), '<span class="pill pend">NOT RUN</span>', "--", "--", "--", "--", "--"]);
+          } else if (cue === "head") {
+            tr.innerHTML = rowHtml(["Trial " + r.n, r.detected ? '<span class="pill yes">YES</span>' : '<span class="pill no">NO</span>', fmt(r.headMean, 2), fmt(r.headStd, 2), fmt(r.shMean, 2), fmt(r.shStd, 2), String(r.count)]);
+          } else {
+            tr.innerHTML = rowHtml(["Trial " + r.n, r.detected ? '<span class="pill yes">YES</span>' : '<span class="pill no">NO</span>', fmt(r.shMean, 2), fmt(r.shStd, 2), fmt(r.headMean, 2), fmt(r.headStd, 2), String(r.count)]);
+          }
+          tbody.appendChild(tr);
+        }
+      }
+      function verdictFor(cue) {
+        var rows = S.trials[cue];
+        var reasons = [];
+        var haveTrials = rows.length >= TRIALS_PER_CUE;
+        var det = rows.filter(function (r) { return r.detected; }).length;
+        if (!haveTrials) reasons.push("Trials incomplete: " + rows.length + " of " + TRIALS_PER_CUE + " recorded.");
+        else reasons.push("Holds detected: " + det + " of " + TRIALS_PER_CUE + (det >= 4 ? " (meets 4 of 5)." : " (needs at least 4)."));
+        var workDone = S.work && S.work.done;
+        if (!workDone) reasons.push("Work sample not finished yet.");
+        else reasons.push("False detections in work sample: " + S.falseDetections + (S.falseDetections === 0 ? " (meets zero)." : " (must be zero).") + (S.work.completed ? "" : " Sample ended early: partial evidence."));
+        if (!S.lossResult) reasons.push("Landmark-loss test not finished yet.");
+        else reasons.push("Landmark-loss test: " + (S.lossResult.pass ? "passed." : "failed. " + S.lossResult.detail));
+        var complete = haveTrials && workDone && !!S.lossResult;
+        var pass = complete && det >= 4 && S.falseDetections === 0 && S.lossResult.pass;
+        return { complete: complete, pass: pass, reasons: reasons };
+      }
+      function renderVerdict(el, title, v) {
+        el.className = "verdict" + (v.complete ? (v.pass ? " pass" : " fail") : "");
+        el.innerHTML = "";
+        var h = document.createElement("span"); h.className = "head";
+        h.textContent = title + ": " + (!v.complete ? "PENDING" : (v.pass ? "PROCEED" : "DO NOT PROCEED"));
+        el.appendChild(h);
+        var ul = document.createElement("ul");
+        v.reasons.forEach(function (r) { var li = document.createElement("li"); li.textContent = r; ul.appendChild(li); });
+        el.appendChild(ul);
+      }
+      function updateVerdicts() {
+        var vh = verdictFor("head"), vs = verdictFor("sh");
+        renderVerdict(els.verdictHead, "HEAD TILT VERDICT", vh);
+        renderVerdict(els.verdictSh, "SHOULDER TILT VERDICT", vs);
+        var both = { complete: vh.complete && vs.complete, pass: vh.pass && vs.pass, reasons: [
+          vh.pass ? "Head tilt: proceed." : "Head tilt: do not proceed yet (see its verdict above).",
+          vs.pass ? "Shoulder tilt: proceed." : "Shoulder tilt: do not proceed yet (see its verdict above).",
+          "Pass criteria per cue: at least 4 of 5 holds detected, AND zero false detections during ordinary work, AND evaluation paused on landmark loss."
+        ] };
+        renderVerdict(els.verdictAll, "OVERALL", both);
+      }
+
+      /* ================= CSV export ================= */
+      function csvCell(v) {
+        if (v === null || v === undefined) return "";
+        var s = String(v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }
+      function downloadCsv() {
+        if (!S.frames.length) { log("No frames logged yet, nothing to export."); return; }
+        var lines = [];
+        lines.push("PoseGuard validation experiment - session export");
+        lines.push("Exported," + nowISO());
+        lines.push("Engine," + (S.engineKind === "tasks" ? "MediaPipe Tasks Vision Pose Landmarker Lite" : S.engineKind === "legacy" ? "MediaPipe Pose (classic, lite, fallback)" : "none"));
+        lines.push("Baseline head (deg)," + (S.baseline ? fmt(S.baseline.head, 3) : ""));
+        lines.push("Baseline shoulder (deg)," + (S.baseline ? fmt(S.baseline.sh, 3) : ""));
+        lines.push("Threshold head (deg)," + thresholds().head);
+        lines.push("Threshold shoulder (deg)," + thresholds().sh);
+        lines.push("False detections (work sample)," + (S.work ? S.falseDetections : ""));
+        lines.push("Landmark-loss test," + (S.lossResult ? csvCell(S.lossResult.detail) : "not run"));
+        lines.push("");
+        lines.push("timestamp,elapsed_s,step,head_tilt,shoulder_tilt,cue_detected,tracking,head_deviation,shoulder_deviation");
+        S.frames.forEach(function (f) {
+          lines.push([csvCell(f.t), f.elapsed, csvCell(f.step), f.head === null ? "" : f.head.toFixed(3), f.sh === null ? "" : f.sh.toFixed(3), csvCell(f.fired), f.tracking, f.devH === null || f.devH === undefined ? "" : f.devH.toFixed(3), f.devS === null || f.devS === undefined ? "" : f.devS.toFixed(3)].join(","));
+        });
+        lines.push("");
+        lines.push("Per-trial summary (angles are deviation from baseline, deg)");
+        lines.push("cue,trial,detected,samples,head_mean,head_std,shoulder_mean,shoulder_std");
+        [["head", S.trials.head], ["shoulder", S.trials.sh]].forEach(function (pair) {
+          pair[1].forEach(function (r) {
+            lines.push([pair[0], r.n, r.detected ? "yes" : "no", r.count, fmt(r.headMean, 3), fmt(r.headStd, 3), fmt(r.shMean, 3), fmt(r.shStd, 3)].join(","));
+          });
+        });
+        var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "poseguard-validation-" + new Date().toISOString().replace(/[:.]/g, "-") + ".csv";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        log("CSV downloaded: " + S.frames.length + " frames plus per-trial summary.");
+      }
+
+      function resetSession() {
+        S.frames = []; S.trials = { head: [], sh: [] }; S.falseDetections = 0;
+        S.work = null; S.loss = null; S.lossResult = null; S.trialRun = null; S.calib = null;
+        els.resFalse.textContent = "--"; els.resLoss.textContent = "Not run"; els.resFrames.textContent = "0";
+        els.frameCount.textContent = "0 frames logged"; els.btnCsv.disabled = true;
+        showCountdown(null);
+        renderTables(); updateVerdicts(); renderStepControls();
+        log("Session data reset (baseline kept).");
+      }
+
+      /* ================= wiring ================= */
+      document.querySelectorAll("[data-check]").forEach(function (box) {
+        box.parentElement.style.cursor = "pointer";
+        box.parentElement.addEventListener("click", function () {
+          box.classList.toggle("done");
+          var n = document.querySelectorAll("[data-check].done").length;
+          log("Setup checklist: " + n + " of " + document.querySelectorAll("[data-check]").length + " confirmed. (Advisory only - the camera button is always available.)");
+        });
+      });
+      els.btnCamera.addEventListener("click", startCamera);
+      els.btnStopCamera.addEventListener("click", stopCamera);
+      els.btnEngine.addEventListener("click", function () {
+        els.btnEngine.disabled = true;
+        initEngine().then(function (ok) {
+          els.btnEngine.disabled = false;
+          els.btnEngine.style.display = ok ? "none" : "";
+          if (ok) { markDone("setup"); gotoStep("calib"); log("Pose engine loaded on retry. Setup complete. Next: calibration."); renderStepControls(); }
+        });
+      });
+      els.btnCsv.addEventListener("click", downloadCsv);
+      els.btnReset.addEventListener("click", resetSession);
+      els.thrHead.addEventListener("change", function () { log("Head threshold set to " + thresholds().head + " deg."); resetDetectors(); });
+      els.thrSh.addEventListener("change", function () { log("Shoulder threshold set to " + thresholds().sh + " deg."); resetDetectors(); });
+
+      renderTables();
+      updateVerdicts();
+      updateTrackingUI();
+      setStep("setup");
+      renderDiag();
+      log("Session ready. Press Enable camera and allow access when the browser asks. The setup checklist is advisory and does not block the button.");
+      if (!window.isSecureContext) log("Warning: this page is not in a secure context. Browsers block camera access outside HTTPS or localhost.");
+    </script>
+</body>
+</html>
