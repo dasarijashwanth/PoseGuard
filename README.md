@@ -1,3 +1,5 @@
+![PoseGuard — Posture awareness, illustrated with a man at a laptop and ear and shoulder tracking landmarks.](assets/poseguard-readme-banner.png)
+
 # PoseGuard
 
 A browser-based posture awareness app designed to process laptop webcam images locally and give gentle reminders about sustained changes in sitting position.
