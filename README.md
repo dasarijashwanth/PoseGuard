@@ -96,3 +96,17 @@ See [PRD.md](PRD.md) for the MVP requirements and acceptance criteria.
 Validation will cover landmark reliability, false reminders during ordinary movement, tracking loss, reminder timing, inference speed, interface responsiveness, offline reloads, and network checks for frame uploads. Performance figures will be published only after measurement on identified hardware and browsers.
 
 Setup commands, test instructions, screenshots, and a deployed demo link will be added as the implementation becomes available.
+
+## Build Progress
+
+### Day 2 (Nov 4): camera pipeline
+- Webcam access with permission states (prompt, granted, denied) and plain-English guidance for common failures such as denied access or no camera found.
+- Frame capture in a Web Worker with OffscreenCanvas; one frame in flight at a time, frames dropped while busy, never queued.
+- getUserMedia fallbacks: HD 1280x720, then SD 640x480, then any camera, with front-camera preference.
+- FPS and frame-drop counters using elapsed-time timing, targeting about 15 checks per second.
+- Minimal start/stop UI with permission state, error banner, and live FPS readout.
+- 36/36 Vitest tests passing; type-check and production build clean.
+
+### Day 1 (Nov 2): project scaffold and posture math
+- Vite + React + TypeScript scaffold with the PRD folder structure.
+- `src/posture/angles.ts`: pure functions for head-tilt and shoulder-tilt angle math plus EMA smoothing; 14/14 Vitest tests passing.
