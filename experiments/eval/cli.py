@@ -17,6 +17,7 @@ from pathlib import Path
 from .analysis import add_deviations, verdict
 from .loader import load_session
 from .report import build_markdown
+from .stats import statistical_verdict
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -48,8 +49,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{r['cue']:<9} {r['threshold']:>4} {r['detected']:>9} "
               f"{r['false_positives']:>9} {r['longest_run_s']:>13}")
 
+    print()
+    print("Statistical validation (Day 4):")
+    stats = statistical_verdict(frames, session)
+    for cue in ("head", "shoulder"):
+        s = stats["cues"][cue]
+        print(f"{cue}: {s['verdict']}  detection 95% CI "
+              f"{s['ci_low']:.0%}-{s['ci_high']:.0%}, "
+              f"{s['false_positives']} false positives "
+              f"(~{s['fp_per_hour']:.0f}/hour)")
+        print(f"  {s['verdict_text']}")
+
     out = Path(args.out) if args.out else Path(__file__).parent / "REPORT.md"
-    out.write_text(build_markdown(session, result), encoding="utf-8")
+    out.write_text(build_markdown(session, result, frames),
+                   encoding="utf-8")
     print(f"\nFull report written to {out}")
     return 0
 

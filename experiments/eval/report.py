@@ -27,9 +27,17 @@ def _sens_table(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def build_markdown(session: SessionData, result: dict) -> str:
-    """Full Markdown report for one analysed session."""
-    f = session.frames
+def build_markdown(session: SessionData, result: dict,
+                   frames=None) -> str:
+    """Full Markdown report for one analysed session.
+
+    `frames` is the deviation-enriched frame table from
+    `analysis.add_deviations` (the CLI passes it). Without it, the
+    report still renders the Day 3 sections from `session.frames`,
+    but the Day 4 statistics are skipped: they need the smoothed
+    circular deviations.
+    """
+    f = frames if frames is not None else session.frames
     steps = {s: int((f["step"] == s).sum())
              for s in ["calib", "head", "shoulder", "work", "loss", "results"]}
     loss = result["loss_test"]
@@ -94,4 +102,64 @@ def build_markdown(session: SessionData, result: dict) -> str:
     lines.append("- Circular deviation is always within [-180, 180] by "
                  "construction, so these phantoms disappear entirely.")
     lines.append("")
+
+    # Day 4: statistical validation. Imported here so report.py stays
+    # usable without the stats module for older callers. Skipped when
+    # no enriched frames were passed (see docstring).
+    if frames is None:
+        return "\n".join(lines)
+
+    from .stats import statistical_verdict
+
+    stats = statistical_verdict(f, session)
+    lines += [
+        "## Statistical validation (Day 4)",
+        "",
+        "With only 5 trials per cue, a raw 0/5 is not proof the true "
+        "rate is zero. The Wilson interval below is the honest range: "
+        "the true detection rate is plausibly anywhere inside it. The "
+        "gate needs 80%, so a cue passes this check only if the "
+        "interval's top end clears 80% AND false positives are zero.",
+        "",
+    ]
+    for cue in ("head", "shoulder"):
+        s = stats["cues"][cue]
+        lines.append(f"### {cue} tilt: {s['verdict'].replace('_', ' ')}")
+        lines.append("")
+        lines.append(f"- Detected {s['detected']}/5, 95% Wilson interval "
+                     f"{s['ci_low']:.0%} to {s['ci_high']:.0%} "
+                     f"(gate needs 80%).")
+        lines.append(f"- False positives: {s['false_positives']} in "
+                     f"{s['work_seconds'] / 60:.1f} minutes of ordinary "
+                     f"work, about {s['fp_per_hour']:.0f} per hour "
+                     f"(95% interval {s['fp_per_hour_low']:.0f} to "
+                     f"{s['fp_per_hour_high']:.0f}).")
+        lines.append(f"- Longest hold above {s['threshold']} deg: "
+                     f"{s['longest_run_s']} s (rule needs 5 s).")
+        zfp = s["zero_fp_threshold"]
+        if zfp is None:
+            lines.append("- No threshold up to 30 deg kills all false "
+                         "positives.")
+        else:
+            lines.append(f"- Lowest threshold with zero false positives: "
+                         f"{zfp['threshold']} deg, where "
+                         f"{zfp['detected']}/5 holds are detected.")
+        lines.append("")
+        lines.append(f"**Verdict:** {s['verdict_text']}")
+        lines.append("")
+        lines.append("| threshold (deg) | detected | 95% CI | false positives | FP/hour |")
+        lines.append("|---:|---:|---:|---:|---:|")
+        for r in s["threshold_curve"]:
+            lines.append(f"| {r['threshold']} | {r['detected']}/5 | "
+                         f"{r['ci_low']:.0%}-{r['ci_high']:.0%} | "
+                         f"{r['false_positives']} | {r['fp_per_hour']:.0f} |")
+        lines.append("")
+        lines.append(f"Persistence curve at {s['persistence_threshold']} "
+                     f"deg (lowest tested threshold): what each "
+                     f"persistence rule would have decided.")
+        lines.append("| persistence rule (s) | detected |")
+        lines.append("|---:|---:|")
+        for r in s["persistence_curve"]:
+            lines.append(f"| {r['persist_s']} | {r['detected']}/5 |")
+        lines.append("")
     return "\n".join(lines)

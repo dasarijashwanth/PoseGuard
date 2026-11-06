@@ -200,18 +200,21 @@ def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
 
 
 def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
-                threshold: float, alignment: dict) -> dict:
+                threshold: float, alignment: dict,
+                persist_s: float = PERSIST_S) -> dict:
     """Detection verdict for one cue at one threshold.
 
     A trial counts as detected if a sustained firing overlaps its hold
     window. Also reports the longest sustained run anywhere in the trial
-    step, which shows how close a near-miss came.
+    step, which shows how close a near-miss came. `persist_s` lets the
+    Day 4 statistics ask \"what if the persistence rule were shorter?\"
+    without changing the 5 s rule the experiment itself used.
     """
     step = CUE_STEP[cue]
     dev_col = "h_dev" if cue == "head" else "s_dev"
     step_frames = frames[frames["step"] == step].sort_values("elapsed_s")
     t0 = float(step_frames["elapsed_s"].iloc[0])
-    events = sustained_events(step_frames, dev_col, threshold)
+    events = sustained_events(step_frames, dev_col, threshold, persist_s=persist_s)
     detected = 0
     per_trial = []
     for k, (lo, hi) in enumerate(_hold_windows(t0, alignment["offset_s"])):

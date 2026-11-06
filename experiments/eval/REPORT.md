@@ -61,3 +61,59 @@ The file's own deviation columns used plain subtraction. Counting frames where |
 - Head: 0 frames with |linear deviation| > 180 deg
 - Shoulder: 1188 frames with |linear deviation| > 180 deg
 - Circular deviation is always within [-180, 180] by construction, so these phantoms disappear entirely.
+
+## Statistical validation (Day 4)
+
+With only 5 trials per cue, a raw 0/5 is not proof the true rate is zero. The Wilson interval below is the honest range: the true detection rate is plausibly anywhere inside it. The gate needs 80%, so a cue passes this check only if the interval's top end clears 80% AND false positives are zero.
+
+### head tilt: salvageable holds
+
+- Detected 0/5, 95% Wilson interval 0% to 43% (gate needs 80%).
+- False positives: 0 in 5.1 minutes of ordinary work, about 0 per hour (95% interval 0 to 0).
+- Longest hold above 8.0 deg: 0.0 s (rule needs 5 s).
+- Lowest threshold with zero false positives: 4 deg, where 0/5 holds are detected.
+
+**Verdict:** No false positives at any tested threshold, but 0/5 holds detected, and the 95% Wilson interval tops out at 43% (the gate needs 80%). The longest hold above 5 deg (the lowest tested threshold) lasted only 1.53 s against the 5 s rule. This is not a threshold problem: at a 0.5 s persistence rule 3/5 holds would have fired, so the tilts were real but far too brief. Salvageable with a re-run of longer, deeper holds.
+
+| threshold (deg) | detected | 95% CI | false positives | FP/hour |
+|---:|---:|---:|---:|---:|
+| 5 | 0/5 | 0%-43% | 0 | 0 |
+| 6 | 0/5 | 0%-43% | 0 | 0 |
+| 7 | 0/5 | 0%-43% | 0 | 0 |
+| 8 | 0/5 | 0%-43% | 0 | 0 |
+
+Persistence curve at 5 deg (lowest tested threshold): what each persistence rule would have decided.
+| persistence rule (s) | detected |
+|---:|---:|
+| 0.5 | 3/5 |
+| 1.0 | 1/5 |
+| 1.5 | 1/5 |
+| 2.0 | 0/5 |
+| 3.0 | 0/5 |
+| 5.0 | 0/5 |
+
+### shoulder tilt: metric wrong
+
+- Detected 0/5, 95% Wilson interval 0% to 43% (gate needs 80%).
+- False positives: 7 in 5.1 minutes of ordinary work, about 83 per hour (95% interval 22 to 145).
+- Longest hold above 6.0 deg: 1.89 s (rule needs 5 s).
+- No threshold up to 30 deg kills all false positives.
+
+**Verdict:** False positives at every tested threshold (7 at 6.0 deg, about 83 per hour of desk work), while detection stays 0/5. And even a 30 deg threshold still fires during ordinary work. No knob setting passes both criteria, so the angle itself cannot separate a real tilt from leaning at a desk. The cue needs a different signal, not a different threshold.
+
+| threshold (deg) | detected | 95% CI | false positives | FP/hour |
+|---:|---:|---:|---:|---:|
+| 4 | 0/5 | 0%-43% | 12 | 142 |
+| 5 | 0/5 | 0%-43% | 7 | 83 |
+| 6 | 0/5 | 0%-43% | 7 | 83 |
+| 8 | 0/5 | 0%-43% | 4 | 48 |
+
+Persistence curve at 4 deg (lowest tested threshold): what each persistence rule would have decided.
+| persistence rule (s) | detected |
+|---:|---:|
+| 0.5 | 1/5 |
+| 1.0 | 0/5 |
+| 1.5 | 0/5 |
+| 2.0 | 0/5 |
+| 3.0 | 0/5 |
+| 5.0 | 0/5 |

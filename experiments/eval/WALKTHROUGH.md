@@ -98,12 +98,83 @@ drop from ordinary leaning at a desk. That is a design finding, not
 a bug: either the cue needs a different signal, or the product needs
 to accept that shoulder tilt alone is not a reliable cue.
 
+## Day 4: the statistics, in plain English
+
+Day 3 told you what happened at each threshold. Day 4 asks whether
+*any* setting could have made it work, using three ideas from
+statistics. The new code lives in `stats.py`, and the numbers land in
+the "Statistical validation" section of `REPORT.md`.
+
+### 1. The Wilson interval: 0/5 does not mean "never"
+
+Five trials is a tiny sample. If you flip a coin 5 times and get zero
+heads, you would not conclude the coin *never* lands heads. The
+Wilson interval is the honest version of that thought: given 0 hits
+out of 5 tries, the true detection rate is plausibly anywhere from 0%
+up to about 43%. That is the 95% confidence interval, and it is the
+right tool because the sample is small and the result sits at the edge
+(0 out of 5), where the usual "average plus or minus" math breaks.
+
+Why it matters: the gate needs 80% detection (4 out of 5). Even the
+*optimistic* end of the interval, 43%, is nowhere near 80%. So the
+head cue did not fail by bad luck on a small sample. It failed by a
+wide margin. No amount of re-running the same 5 trials would plausibly
+flip it to a pass.
+
+### 2. False positives per hour: how annoying is the cue?
+
+A raw count like "7 false positives" is hard to judge without knowing
+how long the work sample was. Seven false alarms in five minutes of
+typing is about 83 per hour, roughly one every 45 seconds. That is the
+rate, and the interval around it (about 21 to 145 per hour) says the
+true rate is high even at the optimistic end. A reminder that fires
+every minute while you work is not a reminder, it is noise. This is
+why the shoulder cue fails even before detection is considered.
+
+### 3. Threshold and persistence curves: is there ANY setting that works?
+
+Instead of asking about one threshold, Day 4 sweeps both knobs:
+
+- **Threshold curve:** detection rate and false-positive rate at every
+  tested threshold. A usable cue needs some row where detection is
+  high *and* false positives are zero. For the shoulder, no such row
+  exists: at 4 degrees there are 12 false positives, at 8 degrees
+  there are still 4, and detection is 0/5 everywhere.
+- **Persistence curve:** what if the firing rule needed 0.5, 1, 1.5,
+  2 or 3 seconds instead of 5? At 5 degrees with a 0.5-second rule,
+  the head cue would have caught 3 of 5 holds. The tilts were real,
+  they just lasted half a second to a second and a half. That is the
+  strongest evidence the head cue is salvageable: the movement is
+  there, the duration is not.
+- **Zero-FP threshold:** the lowest threshold with zero false
+  positives. For the shoulder, *no* threshold up to 30 degrees kills
+  all false positives, the tracker noise alone fires the cue. For the
+  head it is 4 degrees, where detection is still 0/5.
+
+### The verdicts, and what they mean for the re-run
+
+**Head tilt: salvageable.** Clean record (zero false positives at
+every threshold), real tilts that were too brief. The re-run needs
+longer, deeper holds: aim for a full 6 seconds past 5 degrees, not a
+quick dip. If the re-run still shows 0/5, the cue itself is in
+question, but Run 1 does not prove that.
+
+**Shoulder tilt: the metric is wrong for desk work.** No threshold
+and no persistence rule passes both criteria, and even a 30-degree
+threshold still fires during ordinary typing. Leaning at a desk and
+dropping a shoulder produce the same angle, so this angle cannot tell
+them apart. Day 5's classifier will have to find a different signal
+(say, shoulder height difference, or the angle *plus* how long you
+have been leaning), because tuning this one further is a dead end.
+
 ## Files
 
 - `circular.py`: the angle math (wrap, deviation, circular mean).
 - `loader.py`: parses and validates the export CSV.
 - `analysis.py`: smoothing, persistence detection, trial alignment,
   verdicts, sensitivity table.
+- `stats.py`: Wilson intervals, false-positive rates, threshold and
+  persistence curves, zero-FP threshold, per-cue verdicts.
 - `report.py`: renders `REPORT.md`.
 - `cli.py`: the command line entry point.
 - `tests/`: pytest suite, including a synthetic session with known
