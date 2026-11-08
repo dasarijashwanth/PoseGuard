@@ -117,3 +117,34 @@ Persistence curve at 4 deg (lowest tested threshold): what each persistence rule
 | 2.0 | 0/5 |
 | 3.0 | 0/5 |
 | 5.0 | 0/5 |
+
+## Machine-learning classifier (Day 5)
+
+One scikit-learn classifier per cue, over 1-second windows of the smoothed circular deviations (10 frames each). Labels come from the protocol: windows inside a trial hold are 'tilted', windows from ordinary work and the ready/rest gaps are 'upright'. Logistic regression and a 200-tree random forest were trained per cue; the better one by out-of-fold F1 is kept. Evaluation is grouped 5-fold cross-validation, grouped by trial, so no trial's windows appear on both sides.
+
+### head tilt: logistic_regression (23 tilted vs 360 upright windows)
+
+- Out-of-fold accuracy 0.446, precision (tilted) 0.043, recall (tilted) 0.391, F1 (tilted) 0.078. Confusion: TP 9, FP 198, FN 14, TN 162.
+- Trials detected 1/5 (rule baseline: 0/5), false-positive events 6 (rule baseline: 0). A trial counts when at least half its hold windows are predicted tilted; a false-positive event is 5 consecutive tilted work windows.
+- Decision-threshold sweep (trials detected / false-positive events): 0.3: 4/5, 9 FP, 0.5: 1/5, 6 FP, 0.7: 0/5, 0 FP, 0.9: 0/5, 0 FP. No cutoff passes the gate (4/5 trials, 0 false positives).
+- Calm-only accuracy 0.427 on 248 windows where the shoulder line was stable (std < 5 deg, i.e. no tracker noise). If the signal were posture, it would survive here.
+
+### shoulder tilt: logistic_regression (29 tilted vs 356 upright windows)
+
+- Out-of-fold accuracy 0.548, precision (tilted) 0.104, recall (tilted) 0.655, F1 (tilted) 0.179. Confusion: TP 19, FP 164, FN 10, TN 192.
+- Trials detected 5/5 (rule baseline: 0/5), false-positive events 5 (rule baseline: 7). A trial counts when at least half its hold windows are predicted tilted; a false-positive event is 5 consecutive tilted work windows.
+- Decision-threshold sweep (trials detected / false-positive events): 0.3: 5/5, 16 FP, 0.5: 5/5, 5 FP, 0.7: 0/5, 0 FP, 0.9: 0/5, 0 FP. No cutoff passes the gate (4/5 trials, 0 false positives).
+- Calm-only accuracy 0.447 on 246 windows where the shoulder line was stable (std < 5 deg, i.e. no tracker noise). If the signal were posture, it would survive here.
+
+**Verdict:** the classifier does not beat the rule baseline on either cue. The head model detects 1/5 trials with 6 false-positive events (the rule: 0/5, 0 FP). The shoulder model detects 5/5 but with precision 0.10 and 5 false-positive events (the rule: 0/5, 7 FP), and the calm-only check shows its separation is tracker stillness, not shoulder tilt: during the holds you sat still, during work the tracker was noisy. Worst of all, the head model learned the relationship backwards: a flat upright window scores 0.56 tilted, while a steady +6 deg tilt scores 0.33, because in Run 1 the biggest head deviations happened during noisy desk work, not during holds. One session of five brief holds is too little data to train a posture classifier, and protocol labels are not ground truth: two of the five head holds barely tilted at all. The classifier is built, tested and served behind FastAPI (see experiments/model/), but it needs the re-run data (longer, deeper holds, more trials) before it can say anything the rule cannot.
+
+## MLflow experiment tracking (Day 6)
+
+Day 5 left its numbers in one `results.json`. Day 6 logs every training run to MLflow (local file store, `experiments/model/mlruns/`), so runs can be compared side by side instead of overwritten. Each run records which model won per cue, the out-of-fold metrics, trials detected and false-positive events, plus the trained model as an artifact. View them with `mlflow ui --backend-store-uri experiments/model/mlruns` (http://127.0.0.1:5000).
+
+| run | head trials | head FP | head F1 (tilted) | shoulder trials | shoulder FP | shoulder F1 (tilted) |
+|---|---:|---:|---:|---:|---:|---:|
+| random_forest_only | 0/5 | 0 | 0.000 | 0/5 | 0 | 0.000 |
+| day5_baseline | 1/5 | 6 | 0.078 | 5/5 | 5 | 0.179 |
+
+**What the comparison shows:** the random-forest-only run looks better at first glance (accuracy about 0.93 on both cues, against 0.45-0.55 for the baseline) but detects 0/5 trials on both cues: it learned to always answer 'upright', which is right 93% of the time because 360 of 383 windows are upright. Accuracy lies on imbalanced data; F1 (tilted) is the honest score, and it is 0.000. The baseline at least detects something (head 1/5, shoulder 5/5), at the cost of false positives. Neither run beats the rule baseline, and no model choice fixes a dataset of five brief holds. That is exactly what tracking is for: the comparison is written down and checkable, instead of a single flattering number.

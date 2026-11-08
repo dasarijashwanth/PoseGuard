@@ -10,7 +10,7 @@ python3 -m venv ~/.venv-poseguard-eval
 ~/.venv-poseguard-eval/bin/pip install -r requirements.txt
 ```
 
-Needs only pandas, numpy, pytest. Python 3.11+.
+Needs pandas, numpy, pytest, scikit-learn, fastapi, httpx. Python 3.11+.
 
 ## Usage
 
@@ -35,7 +35,8 @@ python -m pytest experiments/eval/tests/ -q
 and persistence detection, trial alignment, false positives, threshold
 sensitivity, Wilson intervals and FP rates, threshold and persistence
 curves, per-cue statistical verdicts, and end-to-end runs on the real
-Run 1 CSV.
+Run 1 CSV. The Day 5 model package adds 26 more tests under
+`../model/tests/` (59 total).
 
 ## What it found on Run 1 (2026-11-03)
 
@@ -67,3 +68,20 @@ a cue pass, instead of just checking the one in the file:
 
 See `WALKTHROUGH.md` for the plain-English version and `REPORT.md`
 for the full numbers.
+
+## Day 5: the classifier (experiments/model/)
+
+`experiments/model/` trains one scikit-learn classifier per cue over
+1-second windows of the angle stream and serves it behind FastAPI
+(`GET /health`, `POST /predict`). The shoulder classifier never sees
+the raw shoulder angle level, only dynamics and head/shoulder
+coupling, per the Day 4 verdict.
+
+Honest result on Run 1: it does **not** beat the rule baseline.
+Head: 1/5 trials, 6 false-positive events (rule: 0/5, 0 FP).
+Shoulder: 5/5 trials but precision 0.10 and 5 false-positive
+events (rule: 0/5, 7 FP), and the calm-only check shows the
+shoulder "win" is tracker stillness, not posture. No decision
+threshold passes the gate for either cue. One session of five brief
+holds is too little data to train on, and protocol labels are not
+ground truth. See `experiments/model/README.md`.

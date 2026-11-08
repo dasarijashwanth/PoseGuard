@@ -27,8 +27,133 @@ def _sens_table(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _model_section(model_results: dict) -> list[str]:
+    """Day 5 classifier results, from experiments/model/results.json."""
+    lines = [
+        "## Machine-learning classifier (Day 5)",
+        "",
+        "One scikit-learn classifier per cue, over 1-second windows of "
+        "the smoothed circular deviations (10 frames each). Labels come "
+        "from the protocol: windows inside a trial hold are 'tilted', "
+        "windows from ordinary work and the ready/rest gaps are "
+        "'upright'. Logistic regression and a 200-tree random forest "
+        "were trained per cue; the better one by out-of-fold F1 is "
+        "kept. Evaluation is grouped 5-fold cross-validation, grouped "
+        "by trial, so no trial's windows appear on both sides.",
+        "",
+    ]
+    for cue in ("head", "shoulder"):
+        r = model_results["cues"][cue]
+        m = r["best_oof_metrics"]
+        t = r["best_oof_trials"]
+        b = r["rule_baseline"]
+        lines.append(f"### {cue} tilt: {r['best_model']} "
+                     f"({r['n_tilted_windows']} tilted vs "
+                     f"{r['n_upright_windows']} upright windows)")
+        lines.append("")
+        lines.append(f"- Out-of-fold accuracy {m['accuracy']}, "
+                     f"precision (tilted) {m['precision_tilted']}, "
+                     f"recall (tilted) {m['recall_tilted']}, "
+                     f"F1 (tilted) {m['f1_tilted']}. Confusion: "
+                     f"TP {m['confusion']['tp']}, FP "
+                     f"{m['confusion']['fp']}, FN "
+                     f"{m['confusion']['fn']}, TN "
+                     f"{m['confusion']['tn']}.")
+        lines.append(f"- Trials detected {t['detected_trials']}/5 "
+                     f"(rule baseline: {b['detected_trials']}/5), "
+                     f"false-positive events "
+                     f"{t['false_positive_events']} (rule baseline: "
+                     f"{b['false_positive_events']}). A trial counts "
+                     f"when at least half its hold windows are "
+                     f"predicted tilted; a false-positive event is 5 "
+                     f"consecutive tilted work windows.")
+        lines.append("- Decision-threshold sweep (trials detected / "
+                     "false-positive events): "
+                     + ", ".join(f"{s['threshold']}: "
+                                 f"{s['detected_trials']}/5, "
+                                 f"{s['false_positive_events']} FP"
+                                 for s in r["threshold_sweep"])
+                     + ". No cutoff passes the gate (4/5 trials, 0 "
+                       "false positives).")
+        lines.append(f"- Calm-only accuracy "
+                     f"{r['calm_only_metrics']['accuracy']} on "
+                     f"{r['calm_windows']} windows where the shoulder "
+                     f"line was stable (std < 5 deg, i.e. no tracker "
+                     f"noise). If the signal were posture, it would "
+                     f"survive here.")
+        lines.append("")
+    lines += [
+        "**Verdict:** the classifier does not beat the rule baseline on "
+        "either cue. The head model detects 1/5 trials with 6 "
+        "false-positive events (the rule: 0/5, 0 FP). The shoulder "
+        "model detects 5/5 but with precision 0.10 and 5 "
+        "false-positive events (the rule: 0/5, 7 FP), and the calm-only "
+        "check shows its separation is tracker stillness, not shoulder "
+        "tilt: during the holds you sat still, during work the tracker "
+        "was noisy. Worst of all, the head model learned the "
+        "relationship backwards: a flat upright window scores 0.56 "
+        "tilted, while a steady +6 deg tilt scores 0.33, because in "
+        "Run 1 the biggest head deviations happened during noisy desk "
+        "work, not during holds. One session of five brief holds is "
+        "too little data to train a posture classifier, and protocol "
+        "labels are not ground truth: two of the five head holds barely "
+        "tilted at all. The classifier is built, tested and served "
+        "behind FastAPI (see experiments/model/), but it needs the "
+        "re-run data (longer, deeper holds, more trials) before it can "
+        "say anything the rule cannot.",
+        "",
+    ]
+    return lines
+
+
+def _tracking_section(comparison: dict) -> list[str]:
+    """Day 6 MLflow comparison, from experiments/model/mlflow_comparison.json."""
+    lines = [
+        "## MLflow experiment tracking (Day 6)",
+        "",
+        "Day 5 left its numbers in one `results.json`. Day 6 logs every "
+        "training run to MLflow (local file store, "
+        "`experiments/model/mlruns/`), so runs can be compared side by "
+        "side instead of overwritten. Each run records which model won "
+        "per cue, the out-of-fold metrics, trials detected and "
+        "false-positive events, plus the trained model as an artifact. "
+        "View them with `mlflow ui --backend-store-uri "
+        "experiments/model/mlruns` (http://127.0.0.1:5000).",
+        "",
+        "| run | head trials | head FP | head F1 (tilted) | shoulder trials | shoulder FP | shoulder F1 (tilted) |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
+    for r in comparison["runs"]:
+        m = r["metrics"]
+        lines.append(
+            f"| {r['run_name']} | {m.get('head_trials_detected', 0):.0f}/5 | "
+            f"{m.get('head_false_positive_events', 0):.0f} | "
+            f"{m.get('head_f1_tilted', 0):.3f} | "
+            f"{m.get('shoulder_trials_detected', 0):.0f}/5 | "
+            f"{m.get('shoulder_false_positive_events', 0):.0f} | "
+            f"{m.get('shoulder_f1_tilted', 0):.3f} |")
+    lines += [
+        "",
+        "**What the comparison shows:** the random-forest-only run "
+        "looks better at first glance (accuracy about 0.93 on both "
+        "cues, against 0.45-0.55 for the baseline) but detects 0/5 "
+        "trials on both cues: it learned to always answer 'upright', "
+        "which is right 93% of the time because 360 of 383 windows "
+        "are upright. Accuracy lies on imbalanced data; F1 (tilted) "
+        "is the honest score, and it is 0.000. The baseline at least "
+        "detects something (head 1/5, shoulder 5/5), at the cost of "
+        "false positives. Neither run beats the rule baseline, and no "
+        "model choice fixes a dataset of five brief holds. That is "
+        "exactly what tracking is for: the comparison is written down "
+        "and checkable, instead of a single flattering number.",
+        "",
+    ]
+    return lines
+
+
 def build_markdown(session: SessionData, result: dict,
-                   frames=None) -> str:
+                   frames=None, model_results: dict | None = None,
+                   tracking_comparison: dict | None = None) -> str:
     """Full Markdown report for one analysed session.
 
     `frames` is the deviation-enriched frame table from
@@ -162,4 +287,13 @@ def build_markdown(session: SessionData, result: dict,
         for r in s["persistence_curve"]:
             lines.append(f"| {r['persist_s']} | {r['detected']}/5 |")
         lines.append("")
+
+    # Day 5: classifier results, when results.json exists.
+    if model_results is not None:
+        lines += _model_section(model_results)
+
+    # Day 6: MLflow run comparison, when mlflow_comparison.json exists.
+    if tracking_comparison is not None:
+        lines += _tracking_section(tracking_comparison)
+
     return "\n".join(lines)

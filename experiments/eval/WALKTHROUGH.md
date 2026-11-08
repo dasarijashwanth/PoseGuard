@@ -179,3 +179,223 @@ have been leaning), because tuning this one further is a dead end.
 - `cli.py`: the command line entry point.
 - `tests/`: pytest suite, including a synthetic session with known
   answers and an end-to-end test on the real Run 1 CSV.
+
+## Day 5: the classifier, in plain English
+
+Day 3 and 4 used fixed rules: "fire when the angle stays past a
+threshold for 5 seconds". Day 5 asks whether a machine-learning
+model can do better than the rule. Instead of one angle at one
+moment, the model looks at a whole second of angles at a time (10
+frames) and learns what a tilt *looks like* from the data itself.
+
+### What the model sees
+
+Each 1-second window becomes a short list of numbers, the features:
+
+- **Head cue:** how far the head is tilted on average, the biggest
+  tilt in the window, which direction (the tilts go one way), how
+  steady the head line is, and how jumpy it is frame to frame.
+- **Shoulder cue:** deliberately NOT the shoulder angle itself. Day 4
+  proved that angle cannot tell a dropped shoulder from leaning at a
+  desk, so the model is forbidden from seeing it. It gets only
+  movement: how jumpy the shoulder line is, how far it swings, how
+  fast it drifts, how the head and shoulder move together, and the
+  head features as context. There is a test that enforces this ban:
+  if anyone adds a shoulder-level feature to the list, the test
+  fails.
+
+### How it learns, and how it is graded
+
+The windows are labelled by the protocol, not by a threshold: windows
+inside a trial hold are "tilted", windows from ordinary typing are
+"upright". Two models are trained per cue, logistic regression (a
+straight-line divider, easy to read) and a random forest (200
+decision trees, catches curved boundaries). The better one is kept.
+
+Grading is grouped cross-validation, grouped by trial. That means
+when the model is tested on trial 4's windows, it has never seen
+trial 4 at all, it only trained on the other trials. That is the
+honest way to grade with 5 trials: a random split would let the
+model memorize a trial's quirks and flatter the score. The same
+out-of-fold predictions give the trial verdicts (a trial counts when
+at least half its hold windows are called tilted) and the
+false-positive events (5 tilted work windows in a row), so the
+numbers compare directly with the rule baseline from Days 3 and 4.
+
+Two extra checks keep the grading honest. A decision-threshold sweep
+asks whether ANY cutoff could pass the gate (4 of 5 trials, zero
+false positives). A calm-only check re-scores the model on windows
+where the shoulder line was stable, removing the tracker-noise
+episodes: if the signal is posture, it should survive there.
+
+### What Run 1 actually tells us
+
+**The classifier does not beat the rule on either cue.** That is the
+finding, and it is worth more than a flattering number would be.
+
+**Head: 1/5 trials, 6 false-positive events.** The rule got 0/5
+with zero false positives. The model caught one trial the rule
+missed, but at the cost of six false alarms during ordinary work.
+Its F1 score for the tilted class is 0.078, which in plain terms
+means: when it says "tilted", it is wrong 96 times out of 100.
+
+**Shoulder: 5/5 trials, but precision 0.10 and 5 false-positive
+events.** The rule got 0/5 with 7 false positives. The 5/5 looks
+like a win until you read the rest: the model calls 134 of 318 work
+windows tilted. The calm-only check exposes why: on calm windows
+its accuracy falls to 0.45, worse than guessing the majority class.
+The model did not learn shoulder tilt. It learned that during the
+holds you sat still and during work the tracker was noisy, so
+"steady" became its proxy for "tilted". A proxy like that breaks
+the moment you sit still at your desk, which is most of the day.
+
+**No decision threshold passes the gate.** At a low cutoff the head
+model reaches 4/5 trials but with 9 false alarms; at a high cutoff
+the false alarms vanish but so does all detection. The shoulder is
+the same story: 5/5 with 16 false alarms at a low cutoff, 0/5 at a
+high one. There is no setting where both criteria hold, exactly as
+Day 4 found for the rule's thresholds.
+
+**The head model learned the relationship backwards.** This is the
+sharpest detail. A perfectly flat upright window scores 0.56
+tilted, while a steady 6-degree tilt scores 0.33. The model
+genuinely believes big head deviations mean "upright", because in
+Run 1 the biggest head deviations happened during noisy desk work,
+not during the holds. A model that scores a real tilt lower than
+sitting still is not a detector, it is a mirror of the noise in one
+afternoon's data.
+
+### Why it failed, and what would fix it
+
+Two reasons, both about data, not about the algorithm. First, one
+session of five brief holds is too little data: 23 tilted windows
+against 360 upright ones, and the holds were 1.5-second dips, not
+the 6-second holds the protocol asked for. Second, protocol labels
+are not ground truth: two of the five head holds barely tilted at
+all, so some "tilted" training examples show no tilt. No model can
+learn a boundary between two groups that overlap almost completely.
+
+The fix is the re-run, not a fancier model: longer, deeper holds,
+more trials, and ideally a second session so the model can be tested
+on a day it never trained on. The classifier itself is built,
+tested (26 new tests) and served behind FastAPI (`GET /health`,
+`POST /predict`), and it will be ready to re-train the moment that
+data exists. Day 6 (MLflow tracking, Docker) builds on this package.
+
+## Day 5 files
+
+- `experiments/model/features.py`: 1-second window features, with
+  the shoulder-level ban.
+- `experiments/model/train.py`: training, grouped cross-validation,
+  threshold sweep, calm-only check, artifact saving.
+- `experiments/model/api.py`: FastAPI app, `/health` and `/predict`.
+- `experiments/model/artifacts/`: the trained models (about 2 KB
+  each, logistic regression won both cues).
+- `experiments/model/results.json`: full metrics, picked up by the
+  eval CLI into `REPORT.md`.
+- `experiments/model/tests/`: 26 tests, including synthetic
+  clean-signal learning and API tests via TestClient.
+
+## Day 6: tracking experiments and shipping the API, in plain English
+
+Day 5 ended with one file, `results.json`, holding one training
+run. That is fine for one run and useless for two: the moment you
+try a different model, the old numbers are overwritten and you can
+no longer say, honestly, which one was better. Day 6 fixes that
+with the two tools every ML team actually uses: MLflow for tracking
+experiments, and Docker for shipping the API.
+
+### MLflow: a lab notebook that cannot be overwritten
+
+MLflow is a lab notebook for training runs. Every time you train,
+one **run** is recorded under a name, with three things:
+
+- **Params:** the settings of that run. Which model won per cue,
+  how many windows were tilted, which features were used.
+- **Metrics:** the scores. Accuracy, precision, recall, F1 per cue,
+  trials detected, false-positive events, calm-only accuracy.
+- **Artifacts:** the trained model files themselves, so any run can
+  be re-served exactly as it was.
+
+The store is a local folder, `experiments/model/mlruns/`, no server
+needed. Log a run with one flag:
+
+```
+python -m experiments.model.train --csv <path> --mlflow
+python -m experiments.model.train --csv <path> --model random_forest \
+    --mlflow --run-name random_forest_only
+```
+
+The second command forces one model instead of letting the trainer
+pick the better of the two. That is the comparison run: same data,
+same grading, one deliberate difference. Read the comparison back
+with `python -m experiments.model.tracking`, which writes
+`mlflow_comparison.json`, and the eval CLI picks that up into
+`REPORT.md`. Or open the web UI:
+
+```
+mlflow ui --backend-store-uri experiments/model/mlruns
+```
+
+### The comparison, and why accuracy lies
+
+Two runs are logged on Run 1. The baseline (Day 5, best model per
+cue) and a random-forest-only run:
+
+| run | head trials | head F1 | shoulder trials | shoulder F1 |
+|---|---|---|---|---|
+| day5_baseline | 1/5 | 0.078 | 5/5 | 0.179 |
+| random_forest_only | 0/5 | 0.000 | 0/5 | 0.000 |
+
+The forest run looks better at first glance: accuracy about 0.93 on
+both cues, against 0.45 to 0.55 for the baseline. But it detects
+nothing at all. It learned to always answer "upright", which is
+right 93% of the time because 360 of 383 windows are upright. That
+is the classic imbalanced-data trap: accuracy rewards the lazy
+answer, and F1 for the rare class is the honest score. The
+baseline at least detects something (head 1/5, shoulder 5/5), at
+the cost of false positives. Neither run beats the rule, and no
+model choice fixes five brief holds. The point of tracking is that
+this comparison is written down and checkable, instead of one
+flattering number in a chat message.
+
+### Docker: the API as a sealed box
+
+The FastAPI service runs on your machine today with
+`uvicorn experiments.model.api:app`. Docker packs that into a sealed
+box: a `Dockerfile` that starts from a slim Python image, installs
+the exact requirements, copies the code and the trained models, and
+runs the same uvicorn command on port 8000. Anyone with Docker can
+run the same box, on any machine, and get the same API:
+
+```
+docker build -f experiments/model/Dockerfile -t poseguard-api .
+docker run -p 8000:8000 poseguard-api
+```
+
+`docker-compose.yml` runs two boxes at once: the API on port 8000
+and the MLflow web UI on port 5000, so the tracking store is
+browsable while the API serves. A fresh retrain can be served
+without rebuilding the image: the compose file mounts the local
+`artifacts/` folder over the baked-in models.
+
+One honest limit: Docker is not installed on this VM, so the image
+was **not** built here. The Dockerfile and compose file are verified
+by tests that check the definition is consistent (base image,
+requirements file, entrypoint, ports), not by a real build. Before
+trusting the box, build it once on a machine with Docker.
+
+## Day 6 files
+
+- `experiments/model/tracking.py`: MLflow logging, run comparison,
+  `mlflow_comparison.json`.
+- `experiments/model/train.py`: new `--model`, `--mlflow` and
+  `--run-name` flags.
+- `experiments/model/Dockerfile`: slim Python image, API on port 8000.
+- `experiments/model/docker-compose.yml`: API + MLflow UI services.
+- `.dockerignore` (repo root): keeps the tracking store, caches and
+  `.git` out of the image.
+- `experiments/model/mlflow_comparison.json`: the two logged runs,
+  picked up by the eval CLI into `REPORT.md`.
+- `experiments/model/tests/test_tracking.py` and `test_docker.py`:
+  11 new tests.
