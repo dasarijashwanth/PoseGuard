@@ -1,0 +1,10 @@
+# Docker build context (repo root): keep images small and avoid
+# shipping local state, caches, and the MLflow tracking store.
+.git/
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.venv*/
+session-exports/
+experiments/model/mlruns/
