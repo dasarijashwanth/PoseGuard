@@ -1,0 +1,35 @@
+# PoseGuard Day 6: classifier API + MLflow UI.
+#
+# Run from experiments/model/:
+#     docker compose up --build
+# API on http://localhost:8000 (GET /health, POST /predict),
+# MLflow UI on http://localhost:5000.
+#
+# The api service builds the same image as the Dockerfile and serves
+# the baked-in trained models. Mounting ./artifacts over the image's
+# copy lets a freshly retrained model be served without rebuilding.
+# The mlflow service reuses that image (it already has mlflow
+# installed) and serves the local tracking store in ./mlruns.
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: experiments/model/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./artifacts:/app/experiments/model/artifacts:ro
+
+  mlflow:
+    build:
+      context: ../..
+      dockerfile: experiments/model/Dockerfile
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri file:///mlruns
+      --default-artifact-root /mlruns
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns

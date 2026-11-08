@@ -1,0 +1,69 @@
+{
+  "experiment": "poseguard-classifier",
+  "runs": [
+    {
+      "run_name": "random_forest_only",
+      "run_id": "85c3a61f69624262a0e8f06a254246e5",
+      "params": {
+        "head_model": "random_forest",
+        "head_n_windows": "383",
+        "head_n_tilted_windows": "23",
+        "head_features": "mean_abs_h,max_abs_h,mean_h,std_h,frac_h_gt5,jerk_h",
+        "shoulder_model": "random_forest",
+        "shoulder_n_windows": "385",
+        "shoulder_n_tilted_windows": "29",
+        "shoulder_features": "std_s,range_s,jerk_s,slope_s,corr_h_s,std_h,mean_abs_h,jerk_h"
+      },
+      "metrics": {
+        "head_accuracy": 0.932,
+        "head_precision_tilted": 0.0,
+        "head_recall_tilted": 0.0,
+        "head_f1_tilted": 0.0,
+        "head_trials_detected": 0.0,
+        "head_false_positive_events": 0.0,
+        "head_work_windows_tilted": 1.0,
+        "head_calm_only_accuracy": 0.895,
+        "shoulder_accuracy": 0.925,
+        "shoulder_precision_tilted": 0.0,
+        "shoulder_recall_tilted": 0.0,
+        "shoulder_f1_tilted": 0.0,
+        "shoulder_trials_detected": 0.0,
+        "shoulder_false_positive_events": 0.0,
+        "shoulder_work_windows_tilted": 0.0,
+        "shoulder_calm_only_accuracy": 0.898
+      }
+    },
+    {
+      "run_name": "day5_baseline",
+      "run_id": "03fcc6a95d5047bcac4534c47beaf4c7",
+      "params": {
+        "head_model": "logistic_regression",
+        "head_n_windows": "383",
+        "head_n_tilted_windows": "23",
+        "head_features": "mean_abs_h,max_abs_h,mean_h,std_h,frac_h_gt5,jerk_h",
+        "shoulder_model": "logistic_regression",
+        "shoulder_n_windows": "385",
+        "shoulder_n_tilted_windows": "29",
+        "shoulder_features": "std_s,range_s,jerk_s,slope_s,corr_h_s,std_h,mean_abs_h,jerk_h"
+      },
+      "metrics": {
+        "head_accuracy": 0.446,
+        "head_precision_tilted": 0.043,
+        "head_recall_tilted": 0.391,
+        "head_f1_tilted": 0.078,
+        "head_trials_detected": 1.0,
+        "head_false_positive_events": 6.0,
+        "head_work_windows_tilted": 172.0,
+        "head_calm_only_accuracy": 0.427,
+        "shoulder_accuracy": 0.548,
+        "shoulder_precision_tilted": 0.104,
+        "shoulder_recall_tilted": 0.655,
+        "shoulder_f1_tilted": 0.179,
+        "shoulder_trials_detected": 5.0,
+        "shoulder_false_positive_events": 5.0,
+        "shoulder_work_windows_tilted": 134.0,
+        "shoulder_calm_only_accuracy": 0.447
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+# PoseGuard posture classifier (Day 5)
+
+A scikit-learn classifier per cue, trained on the Run 1 validation
+CSV, served behind FastAPI. Day 5 of the reshaped PoseGuard track
+(Python / AI / ML / Data Science).
+
+## Setup
+
+Same venv as the eval harness:
+
+```bash
+~/.venv-poseguard-eval/bin/pip install -r ../eval/requirements.txt
+```
+
+Needs pandas, numpy, scikit-learn, fastapi, httpx, uvicorn, mlflow,
+pytest.
+
+## Train
+
+From the repo root:
+
+```bash
+python -m experiments.model.train --csv <path/to/validation.csv>
+python -m experiments.model.train --csv <path> --save
+```
+
+`--save` also writes the winning model per cue to
+`artifacts/model_<cue>.joblib` (about 2 KB each) and the full
+metrics to `results.json`. The eval CLI picks `results.json` up
+automatically and adds the classifier section to `REPORT.md`.
+
+## MLflow tracking (Day 6)
+
+Log a training run instead of overwriting `results.json`:
+
+```bash
+python -m experiments.model.train --csv <path> --mlflow
+python -m experiments.model.train --csv <path> --model random_forest \
+    --mlflow --run-name random_forest_only
+```
+
+Runs land in the local file store `mlruns/` (not committed to git).
+Compare them with `python -m experiments.model.tracking`, which
+writes `mlflow_comparison.json`, or browse them with:
+
+```bash
+mlflow ui --backend-store-uri experiments/model/mlruns
+```
+
+On Run 1 the comparison is: baseline (best model per cue) head 1/5
+trials F1 0.078, shoulder 5/5 F1 0.179; random-forest-only head
+0/5 F1 0.000, shoulder 0/5 F1 0.000, despite about 0.93 accuracy,
+because it answers "upright" for every window. Accuracy lies on
+imbalanced data; F1 is the honest score.
+
+## Serve
+
+```bash
+uvicorn experiments.model.api:app --port 8000
+```
+
+## Docker (Day 6)
+
+Build from the repo root (the build context):
+
+```bash
+docker build -f experiments/model/Dockerfile -t poseguard-api .
+docker run -p 8000:8000 poseguard-api
+```
+
+Or run the API plus the MLflow UI together (from `experiments/model/`):
+
+```bash
+docker compose up --build
+```
+
+API on http://localhost:8000, MLflow UI on http://localhost:5000.
+The image already contains the trained models; mounting
+`./artifacts` over `/app/experiments/model/artifacts` serves a
+freshly retrained model without rebuilding. Note: Docker is not
+installed on the build VM, so the image was verified by definition
+tests, not by a real build.
+
+- `GET /health` returns which models are loaded.
+- `POST /predict` takes a window of raw angle samples and returns
+  the predicted state plus the probability it is a deliberate tilt:
+
+```json
+{
+  "cue": "head",
+  "baseline_head": -5.622,
+  "baseline_shoulder": 174.173,
+  "samples": [
+    {"elapsed_s": 0.0, "head_tilt": -2.1, "shoulder_tilt": 175.0,
+     "tracking": 1}
+  ]
+}
+```
+
+Send 10 to 100 samples; the most recent 10 are used (one 1-second
+window). At least 8 of them must be tracked, or the request is
+rejected with 422.
+
+## How it works
+
+Each 1-second window (10 frames) of the smoothed circular deviations
+becomes a feature vector. The head classifier may use the head angle
+level (mean, max, signed mean, fraction past 5 deg) plus steadiness
+(std, frame-to-frame change). The shoulder classifier is forbidden
+from seeing the shoulder angle level: Day 4 proved that angle cannot
+tell a dropped shoulder from leaning at a desk. It gets only
+dynamics and coupling (shoulder jumpiness, range, drift slope,
+head/shoulder correlation, head steadiness and level as context).
+
+Labels come from the protocol, not from a threshold: windows inside
+a trial hold are "tilted", windows from ordinary work and the
+ready/rest gaps are "upright". Logistic regression and a 200-tree
+random forest are trained per cue; the better one by out-of-fold F1
+is kept. Evaluation is grouped 5-fold cross-validation, grouped by
+trial, so no trial's windows appear on both sides of a split.
+
+## Tests
+
+```bash
+python -m pytest experiments/model/tests/ -q
+```
+
+26 tests: feature engineering (including the ban on shoulder-level
+features), training determinism, learning on clean synthetic data,
+API endpoints via TestClient, and an end-to-end run on the real
+Run 1 CSV. Day 6 adds 11 more (MLflow logging and comparison,
+Dockerfile/compose definition), 37 model tests in total.
+
+## What it found on Run 1 (2026-11-03)
+
+The honest result: the classifier does **not** beat the rule-based
+baseline on either cue.
+
+- Head (logistic regression): 1/5 trials detected, 6 false-positive
+  events, F1 (tilted) 0.078. The rule: 0/5, 0 FP. Worse on false
+  positives, barely better on detection.
+- Shoulder (logistic regression): 5/5 trials detected, but precision
+  0.10 and 5 false-positive events, F1 (tilted) 0.179. The rule:
+  0/5, 7 FP. The trial "win" is a stillness artifact: during the
+  holds you sat still, during work the tracker was noisy, so the
+  model learned "steady = tilted". On calm windows only, accuracy
+  drops to 0.45.
+- No decision threshold passes the gate (4/5 trials, 0 FP) for
+  either cue: the sweep trades trials for false positives at every
+  cutoff.
+- Worst of all, the head model learned the relationship backwards:
+  a flat upright window scores 0.56 tilted, a steady +6 deg tilt
+  scores 0.33, because in Run 1 the biggest head deviations happened
+  during noisy desk work, not during holds.
+
+Why: one session of five brief holds is too little data to train on,
+and protocol labels are not ground truth (two of the five head holds
+barely tilted at all). The classifier is built, tested and served,
+but it needs the re-run data (longer, deeper holds, more trials)
+before it can say anything the rule cannot.
+
+See `WALKTHROUGH.md` in `../eval/` for the plain-English version
+and `../eval/REPORT.md` for the full numbers.
