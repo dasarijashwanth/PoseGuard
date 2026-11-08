@@ -6,3 +6,7 @@ dist/
 *.mp4
 *.mov
 session-exports/
+__pycache__/
+*.pyc
+# MLflow tracking store (Day 6): local-only, grows with every run.
+experiments/model/mlruns/
