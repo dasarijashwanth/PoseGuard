@@ -3,7 +3,7 @@
 import pytest
 
 from experiments.eval.loader import load_session
-from conftest import build_csv
+from experiments.eval.tests.conftest import build_csv
 
 
 def test_loads_fixture_session(session):
