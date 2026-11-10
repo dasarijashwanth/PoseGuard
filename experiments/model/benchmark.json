@@ -1,0 +1,222 @@
+{
+  "csv": "/home/hatch/workspace/user/files/poseguard-validation-2026-11-03T19-24-30-709Z.csv",
+  "frames": 7820,
+  "cues": {
+    "head": {
+      "n_windows": 383,
+      "n_tilted_windows": 23,
+      "rows": [
+        {
+          "model": "logistic_regression",
+          "accuracy": 0.446,
+          "precision_tilted": 0.043,
+          "recall_tilted": 0.391,
+          "f1_tilted": 0.078,
+          "detected_trials": 1,
+          "false_positive_events": 6,
+          "work_windows_tilted": 172,
+          "work_windows_total": 318
+        },
+        {
+          "model": "random_forest",
+          "accuracy": 0.932,
+          "precision_tilted": 0.0,
+          "recall_tilted": 0.0,
+          "f1_tilted": 0.0,
+          "detected_trials": 0,
+          "false_positive_events": 0,
+          "work_windows_tilted": 1,
+          "work_windows_total": 318
+        },
+        {
+          "model": "mlp",
+          "accuracy": 0.671,
+          "precision_tilted": 0.036,
+          "recall_tilted": 0.174,
+          "f1_tilted": 0.06,
+          "detected_trials": 1,
+          "false_positive_events": 4,
+          "work_windows_tilted": 100,
+          "work_windows_total": 318
+        }
+      ],
+      "rule_baseline": {
+        "detected_trials": 0,
+        "false_positive_events": 0
+      },
+      "mlp_threshold_sweep": [
+        {
+          "threshold": 0.3,
+          "detected_trials": 4,
+          "false_positive_events": 2
+        },
+        {
+          "threshold": 0.5,
+          "detected_trials": 1,
+          "false_positive_events": 4
+        },
+        {
+          "threshold": 0.7,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        },
+        {
+          "threshold": 0.9,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        }
+      ],
+      "sk_threshold_sweep": [
+        {
+          "threshold": 0.3,
+          "detected_trials": 4,
+          "false_positive_events": 9
+        },
+        {
+          "threshold": 0.5,
+          "detected_trials": 1,
+          "false_positive_events": 6
+        },
+        {
+          "threshold": 0.7,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        },
+        {
+          "threshold": 0.9,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        }
+      ],
+      "mlp_calm_accuracy": 0.685,
+      "best_sk_calm_accuracy": 0.427,
+      "mlp_split_metrics": {
+        "n": 115,
+        "n_tilted": 7,
+        "n_upright": 108,
+        "accuracy": 0.93,
+        "precision_tilted": 0.444,
+        "recall_tilted": 0.571,
+        "f1_tilted": 0.5,
+        "precision_upright": 0.972,
+        "recall_upright": 0.954,
+        "f1_upright": 0.963,
+        "confusion": {
+          "tn": 103,
+          "fp": 5,
+          "fn": 3,
+          "tp": 4
+        }
+      },
+      "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.06 vs 0.078. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 1/5 trials with 4 false positives, against the rule baseline of 0/5 trials and 0 false positives."
+    },
+    "shoulder": {
+      "n_windows": 385,
+      "n_tilted_windows": 29,
+      "rows": [
+        {
+          "model": "logistic_regression",
+          "accuracy": 0.548,
+          "precision_tilted": 0.104,
+          "recall_tilted": 0.655,
+          "f1_tilted": 0.179,
+          "detected_trials": 5,
+          "false_positive_events": 5,
+          "work_windows_tilted": 134,
+          "work_windows_total": 318
+        },
+        {
+          "model": "random_forest",
+          "accuracy": 0.925,
+          "precision_tilted": 0.0,
+          "recall_tilted": 0.0,
+          "f1_tilted": 0.0,
+          "detected_trials": 0,
+          "false_positive_events": 0,
+          "work_windows_tilted": 0,
+          "work_windows_total": 318
+        },
+        {
+          "model": "mlp",
+          "accuracy": 0.764,
+          "precision_tilted": 0.092,
+          "recall_tilted": 0.241,
+          "f1_tilted": 0.133,
+          "detected_trials": 2,
+          "false_positive_events": 1,
+          "work_windows_tilted": 54,
+          "work_windows_total": 318
+        }
+      ],
+      "rule_baseline": {
+        "detected_trials": 0,
+        "false_positive_events": 7
+      },
+      "mlp_threshold_sweep": [
+        {
+          "threshold": 0.3,
+          "detected_trials": 5,
+          "false_positive_events": 11
+        },
+        {
+          "threshold": 0.5,
+          "detected_trials": 2,
+          "false_positive_events": 1
+        },
+        {
+          "threshold": 0.7,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        },
+        {
+          "threshold": 0.9,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        }
+      ],
+      "sk_threshold_sweep": [
+        {
+          "threshold": 0.3,
+          "detected_trials": 5,
+          "false_positive_events": 16
+        },
+        {
+          "threshold": 0.5,
+          "detected_trials": 5,
+          "false_positive_events": 5
+        },
+        {
+          "threshold": 0.7,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        },
+        {
+          "threshold": 0.9,
+          "detected_trials": 0,
+          "false_positive_events": 0
+        }
+      ],
+      "mlp_calm_accuracy": 0.663,
+      "best_sk_calm_accuracy": 0.447,
+      "mlp_split_metrics": {
+        "n": 116,
+        "n_tilted": 9,
+        "n_upright": 107,
+        "accuracy": 0.698,
+        "precision_tilted": 0.067,
+        "recall_tilted": 0.222,
+        "f1_tilted": 0.103,
+        "precision_upright": 0.919,
+        "recall_upright": 0.738,
+        "f1_upright": 0.819,
+        "confusion": {
+          "tn": 79,
+          "fp": 28,
+          "fn": 7,
+          "tp": 2
+        }
+      },
+      "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.133 vs 0.179. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 2/5 trials with 1 false positives, against the rule baseline of 0/5 trials and 7 false positives."
+    }
+  }
+}

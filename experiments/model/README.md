@@ -161,3 +161,28 @@ before it can say anything the rule cannot.
 
 See `WALKTHROUGH.md` in `../eval/` for the plain-English version
 and `../eval/REPORT.md` for the full numbers.
+
+## Day 8: PyTorch MLP benchmark
+
+A small MLP per cue (`torch_mlp.py`, CPU-only, two hidden layers
+32 and 16, ReLU, dropout, Adam with weight decay, early stopping,
+inverse-frequency class weights). Same window features and same
+grouped 5-fold CV as Day 5, so the comparison is apples-to-apples.
+Run it with:
+
+```bash
+python -m experiments.model.benchmark --csv <path/to/validation.csv>
+```
+
+Torch installs CPU-only from the PyTorch CPU wheel index (see the
+note in `../eval/requirements.txt`); the default index fetches the
+large CUDA build, which this machine does not need.
+
+Verdict on Run 1: the MLP does **not** beat logistic regression
+on either cue (head F1 0.060 vs 0.078, shoulder 0.133 vs 0.179)
+and passes the gate on neither (head 1/5 trials, 4 FP; shoulder
+2/5 trials, 1 FP). It is still the least trigger-happy model
+(head 100/318 work windows flagged vs 172, shoulder 54 vs 134)
+and the only one whose signal survives the calm-only check
+(accuracy 0.685/0.663 vs 0.427/0.447). Full table and verdicts in
+`BENCHMARK.md`, plain-English version in `WALKTHROUGH.md`.
