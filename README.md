@@ -2,11 +2,11 @@
 
 # PoseGuard
 
-PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues can be measured honestly. It collects real webcam landmark data, evaluates two posture cues against that data with pandas, validates them with statistics, trains a scikit-learn classifier on them, and serves the result behind FastAPI, with MLflow tracking and Docker packaging. A small React app acts as the demo shell that collects the webcam data in the first place.
+PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues can be measured honestly. It collects real webcam landmark data, evaluates two posture cues against that data with pandas, validates them with statistics, trains scikit-learn and PyTorch classifiers on them, and serves the result behind FastAPI, with MLflow tracking and Docker packaging. A small React app acts as the demo shell that collects the webcam data in the first place.
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 7. The Python pipeline is complete and tested (70/70 tests). There is no live deployment yet, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
+**Status:** Built through Day 8. The Python pipeline is complete and tested (79/79 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. There is no live deployment yet, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
 
 ## What this project is
 
@@ -170,7 +170,7 @@ Serve the API:
 uvicorn experiments.model.api:app --port 8000
 ```
 
-Run the tests (70/70 in one combined run: 33 eval + 37 model):
+Run the tests (79/79 in one combined run: 33 eval + 37 model + 9 MLP):
 
 ```bash
 python -m pytest experiments/ -q
@@ -214,6 +214,12 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 8 (Nov 10): PyTorch MLP benchmark
+
+- Small PyTorch MLP per cue (`experiments/model/torch_mlp.py`): two hidden layers (32, 16), ReLU, dropout, Adam with weight decay, early stopping on a validation split taken from the training groups only, inverse-frequency class weights computed from the training portion only. CPU-only, deterministic at a fixed seed. Torch 2.15.0+cpu installed in the eval venv.
+- Benchmark (`experiments/model/benchmark.py`, `BENCHMARK.md`): MLP vs logistic regression vs random forest on the same Run 1 data, same grouped 5-fold CV by trial. Honest verdict: the MLP does not beat logistic regression on either cue (head F1 0.060 vs 0.078, shoulder 0.133 vs 0.179) and passes the gate on neither (head 1/5 trials, 4 FP; shoulder 2/5 trials, 1 FP). It is the least trigger-happy model and the only one whose signal survives the calm-only check (accuracy 0.685/0.663 vs 0.427/0.447). At threshold 0.3 the head MLP reaches 4/5 trials with 2 FP, the closest any model has come to the gate. The fix is still the re-run data, not a fancier model.
+- 79/79 tests passing in one combined run (33 eval + 37 model + 9 MLP).
 
 ### Day 7 (Nov 9): README rewritten around the data and ML story
 
