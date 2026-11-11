@@ -209,4 +209,3 @@ Render-style port: `/health` 200 with both models loaded,
 `/predict` 200 for both cues, bad cue 422. Still unverified: no
 real Docker build has ever run (Docker is not installed on the
 build VM), and there is no live URL until the Render steps run.
-
