@@ -48,43 +48,6 @@ that is a later step, not this one.
 9. Send the live URL back. It goes into the repo README and the
    model README as the live link.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Free tier notes
 
 - A free web service sleeps after 15 minutes with no traffic. The
@@ -114,22 +77,3 @@ more clicks.
   Day 10 slice.
 - The live URL does not exist until the steps above run. Nothing in
   this repo points at a live service yet.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
