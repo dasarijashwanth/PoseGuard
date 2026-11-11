@@ -59,44 +59,6 @@ the Dockerfile will start it (uvicorn, port from `$PORT`):
   tilted. The deploy does not fix the models; it serves them.
 - A bad cue answered 422, as designed.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Not verified, and stated honestly in `docs/DEPLOY.md`:
 
 - No real Docker build has ever run. Docker is not installed on
@@ -130,24 +92,3 @@ on every push to `main`.
   closes the AWS gap on the resume and reuses the same slim image.
 - The React demo shell still needs its own static deploy (Vercel);
   that is separate from this API deploy.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
