@@ -1,0 +1,30 @@
+# PoseGuard API on Render (Day 9). Blueprint: Render reads this file
+# and creates the service in one click (Dashboard > New > Blueprint).
+# No secrets needed: the image already contains the trained models,
+# and the API takes no API keys.
+services:
+  - type: web
+    name: poseguard-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./experiments/model/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
