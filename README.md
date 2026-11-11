@@ -335,18 +335,9 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Vite + React + TypeScript scaffold with the PRD folder structure.
 - `src/posture/angles.ts`: pure functions for head-tilt and shoulder-tilt angle math plus EMA smoothing; 14/14 Vitest tests passing.
 
-
-
-
-
-
 ## What comes next
 
 1. **Camera re-run:** longer, deeper head holds (head threshold 5), all 10 trials plus a 5-minute work sample and a landmark-loss test with the camera covered. Serve the updated experiment page from localhost.
 2. **Retrain on the re-run data:** run the eval harness, then retrain the classifier and compare the new run in MLflow.
 3. **A different signal for the shoulder cue:** the angle level cannot separate a dropped shoulder from leaning at a desk. Candidates are movement-based features or a different landmark pair.
 4. **Live deploy of the API:** Day 9 made the repo Render-ready (Blueprint, slim image, $PORT binding) and wrote the click-by-click guide in `docs/DEPLOY.md`. The live URL still needs his Render clicks; once it exists it goes into this README. No live URL until then.
-
-
-
-
