@@ -1,0 +1,38 @@
+# PoseGuard API runtime requirements (Day 9).
+#
+# Only what the FastAPI service imports at runtime: FastAPI, uvicorn,
+# scikit-learn (the saved models unpickle sklearn classes), pandas,
+# numpy, joblib. Pydantic comes in with FastAPI.
+#
+# This is deliberately NOT experiments/eval/requirements.txt. That
+# file also installs torch and mlflow, and the API never imports
+# either one. Worse, its torch line installs the multi-gigabyte CUDA
+# build from the default index, which makes a Render build slow and
+# the image huge. The Dockerfile installs this file by default; the
+# MLflow service in docker-compose.yml passes the full requirements
+# as a build arg instead.
+fastapi>=0.115
+uvicorn>=0.30
+scikit-learn>=1.5
+pandas>=2.0
+numpy>=1.26
+joblib>=1.3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
