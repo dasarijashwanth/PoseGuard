@@ -53,28 +53,6 @@ trials F1 0.078, shoulder 5/5 F1 0.179; random-forest-only head
 because it answers "upright" for every window. Accuracy lies on
 imbalanced data; F1 is the honest score.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Serve
 
 ```bash
@@ -231,19 +209,4 @@ Render-style port: `/health` 200 with both models loaded,
 `/predict` 200 for both cues, bad cue 422. Still unverified: no
 real Docker build has ever run (Docker is not installed on the
 build VM), and there is no live URL until the Render steps run.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
