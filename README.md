@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 8. The Python pipeline is complete and tested (79/79 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. There is no live deployment yet, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
+**Status:** Built through Day 9. The Python pipeline is complete and tested (87/87 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; the live URL still needs his clicks on Render, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
 
 ## What this project is
 
@@ -21,6 +21,11 @@ The pipeline, in order:
 5. **Serve:** FastAPI (`GET /health`, `POST /predict`) serves the trained models.
 6. **Track:** MLflow logs every training run to a local file store so runs can be compared instead of overwritten.
 7. **Package:** a Dockerfile and docker-compose file wrap the API and the MLflow UI.
+
+
+
+
+
 
 ## The two cues, and the honest verdict
 
@@ -65,6 +70,17 @@ Root causes: one session, 23 tilted vs 360 upright windows, and protocol labels 
 | Random forest only | 0/5 | 0/5 | 0.000 | 0.000 | about 0.93 |
 
 The random forest hit about 93% accuracy by learning to always answer "upright". Accuracy lies on imbalanced data; F1 is the honest score. Neither model beats the rule baseline.
+
+
+
+
+
+
+
+
+
+
+
 
 ## How it works
 
@@ -129,6 +145,22 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
 │   └── camera/                   # getUserMedia, worker capture, stats
 └── docs/validation.md            # validation gate definition
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Setup and usage
 
@@ -213,7 +245,43 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Detection depends on camera angle, lighting, clothing, and body visibility. A laptop webcam may not show the hips or reliably distinguish forward slouching.
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Build Progress
+
+### Day 9 (Nov 10): Render deploy prep
+
+- Render Blueprint (`render.yaml` at the repo root): one web service, `poseguard-api`, Docker runtime, free plan, health check on `/health`. No secrets needed, the image already contains the trained models and the API takes no API keys.
+- Two real deploy blockers fixed in the Dockerfile: the start command now binds `$PORT`, which Render sets (10000 by default, not 8000), and the image now installs a slim runtime-only requirements file (`experiments/model/requirements-api.txt`), because the old file pulled torch and mlflow and the default torch install is the multi-gigabyte CUDA build. The MLflow service in docker-compose still gets the full requirements through a build arg.
+- Deploy guide (`docs/DEPLOY.md`): exact click-by-click Render steps, free-tier notes, and a manual fallback.
+- Verified live locally: the API started on a Render-style port with uvicorn, `/health` answered 200 with both models loaded, `/predict` answered 200 for both cues, and a bad cue answered 422.
+- 87/87 tests passing in one combined run (33 eval + 54 model, including 9 MLP, 8 Docker, 5 Render). Still unverified: no real Docker build has ever run, Docker is not installed on the build machine, and there is no live URL until the Render steps run.
 
 ### Day 8 (Nov 10): PyTorch MLP benchmark
 
@@ -267,9 +335,18 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Vite + React + TypeScript scaffold with the PRD folder structure.
 - `src/posture/angles.ts`: pure functions for head-tilt and shoulder-tilt angle math plus EMA smoothing; 14/14 Vitest tests passing.
 
+
+
+
+
+
 ## What comes next
 
 1. **Camera re-run:** longer, deeper head holds (head threshold 5), all 10 trials plus a 5-minute work sample and a landmark-loss test with the camera covered. Serve the updated experiment page from localhost.
 2. **Retrain on the re-run data:** run the eval harness, then retrain the classifier and compare the new run in MLflow.
 3. **A different signal for the shoulder cue:** the angle level cannot separate a dropped shoulder from leaning at a desk. Candidates are movement-based features or a different landmark pair.
-4. **Live deploy of the API:** the Docker image still needs one real build on a machine with Docker, then a Render-style deploy. No live URL until then.
+4. **Live deploy of the API:** Day 9 made the repo Render-ready (Blueprint, slim image, $PORT binding) and wrote the click-by-click guide in `docs/DEPLOY.md`. The live URL still needs his Render clicks; once it exists it goes into this README. No live URL until then.
+
+
+
+
