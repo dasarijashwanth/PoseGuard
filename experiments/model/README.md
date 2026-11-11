@@ -53,6 +53,28 @@ trials F1 0.078, shoulder 5/5 F1 0.179; random-forest-only head
 because it answers "upright" for every window. Accuracy lies on
 imbalanced data; F1 is the honest score.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Serve
 
 ```bash
@@ -186,3 +208,42 @@ and passes the gate on neither (head 1/5 trials, 4 FP; shoulder
 and the only one whose signal survives the calm-only check
 (accuracy 0.685/0.663 vs 0.427/0.447). Full table and verdicts in
 `BENCHMARK.md`, plain-English version in `WALKTHROUGH.md`.
+
+## Day 9: Render deploy prep
+
+The API is ready to go live on Render. `render.yaml` at the repo
+root is a Render Blueprint: one web service, `poseguard-api`,
+Docker runtime, free plan, health check on `/health`. No secrets
+needed, the image already contains the trained models.
+
+Two blockers fixed in the `Dockerfile`: the start command now binds
+`$PORT`, which Render sets (10000 by default, not 8000), and the
+image now installs the slim runtime-only requirements
+(`requirements-api.txt`), because the old file pulled torch and
+mlflow and the default torch install is the multi-gigabyte CUDA
+build. The MLflow service in `docker-compose.yml` still gets the
+full requirements through a build arg.
+
+Full steps, including the exact clicks, are in
+`../docs/DEPLOY.md`; plain-English version in
+`WALKTHROUGH_DAY9.md`. Verified live locally with uvicorn on a
+Render-style port: `/health` 200 with both models loaded,
+`/predict` 200 for both cues, bad cue 422. Still unverified: no
+real Docker build has ever run (Docker is not installed on the
+build VM), and there is no live URL until the Render steps run.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
