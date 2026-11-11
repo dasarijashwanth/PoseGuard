@@ -13,18 +13,3 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
