@@ -8,8 +8,9 @@
 # The api service builds the same image as the Dockerfile and serves
 # the baked-in trained models. Mounting ./artifacts over the image's
 # copy lets a freshly retrained model be served without rebuilding.
-# The mlflow service reuses that image (it already has mlflow
-# installed) and serves the local tracking store in ./mlruns.
+# The mlflow service reuses that Dockerfile but passes the full eval
+# requirements as a build arg, because the slim API set (the default)
+# does not include mlflow.
 
 services:
   api:
@@ -25,6 +26,8 @@ services:
     build:
       context: ../..
       dockerfile: experiments/model/Dockerfile
+      args:
+        REQUIREMENTS: experiments/eval/requirements.txt
     command: >
       mlflow server --host 0.0.0.0 --port 5000
       --backend-store-uri file:///mlruns
@@ -33,3 +36,37 @@ services:
       - "5000:5000"
     volumes:
       - ./mlruns:/mlruns
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
