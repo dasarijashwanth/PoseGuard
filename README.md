@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 9. The Python pipeline is complete and tested (87/87 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; the live URL still needs his clicks on Render, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
+**Status:** Built through Day 10. The Python pipeline is complete and tested (99/99 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
 
 ## What this project is
 
@@ -21,11 +21,6 @@ The pipeline, in order:
 5. **Serve:** FastAPI (`GET /health`, `POST /predict`) serves the trained models.
 6. **Track:** MLflow logs every training run to a local file store so runs can be compared instead of overwritten.
 7. **Package:** a Dockerfile and docker-compose file wrap the API and the MLflow UI.
-
-
-
-
-
 
 ## The two cues, and the honest verdict
 
@@ -70,17 +65,6 @@ Root causes: one session, 23 tilted vs 360 upright windows, and protocol labels 
 | Random forest only | 0/5 | 0/5 | 0.000 | 0.000 | about 0.93 |
 
 The random forest hit about 93% accuracy by learning to always answer "upright". Accuracy lies on imbalanced data; F1 is the honest score. Neither model beats the rule baseline.
-
-
-
-
-
-
-
-
-
-
-
 
 ## How it works
 
@@ -145,22 +129,6 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
 │   └── camera/                   # getUserMedia, worker capture, stats
 └── docs/validation.md            # validation gate definition
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Setup and usage
 
@@ -245,35 +213,13 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Detection depends on camera angle, lighting, clothing, and body visibility. A laptop webcam may not show the hips or reliably distinguish forward slouching.
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Build Progress
+
+### Day 10 (Nov 12): AWS deploy prep
+
+- ECS Fargate deploy prep in `deploy/aws/`: a task definition (`poseguard-api`, smallest Fargate size 0.25 vCPU / 0.5 GB, port 8000, health check on `/health`, CloudWatch logs), a service definition (desired count 1, behind an Application Load Balancer), and a deploy script that builds the same slim Day 9 image, pushes it to ECR, backs the trained model artifacts up to S3, registers the task definition, and creates or updates the service.
+- Deploy guide (`docs/DEPLOY_AWS.md`): exact console steps and the deploy command, cost about $25 a month (about $9 for the task, about $16 for the load balancer), and the resume bullet this closes (AWS was the top skills gap, 11 postings).
+- 99/99 tests passing in one combined run (33 eval + 66 model, including 12 new AWS tests). Still unverified: the deploy script has never been run end to end (no Docker on the build machine, no AWS account confirmed), and there is no live URL until the AWS steps run.
 
 ### Day 9 (Nov 10): Render deploy prep
 
