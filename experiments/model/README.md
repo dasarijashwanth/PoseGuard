@@ -209,3 +209,31 @@ Render-style port: `/health` 200 with both models loaded,
 `/predict` 200 for both cues, bad cue 422. Still unverified: no
 real Docker build has ever run (Docker is not installed on the
 build VM), and there is no live URL until the Render steps run.
+
+## Day 10: AWS deploy prep
+
+The same API is ready to go live on AWS. `deploy/aws/` at the
+repo root holds an ECS Fargate task definition (`poseguard-api`,
+0.25 vCPU / 0.5 GB, port 8000, health check on `/health`,
+CloudWatch logs), a service definition (desired count 1, behind
+an Application Load Balancer), and `deploy.sh`, which builds the
+slim Day 9 image, pushes it to ECR, backs the model artifacts
+up to S3, registers the task definition with the real image URI,
+and creates or updates the service.
+
+Two details: the health check uses a Python `urllib` one-liner,
+not curl, because the slim image has no curl; and the image URI
+in the task definition is a placeholder
+(`<account-id>.dkr.ecr.us-east-1.amazonaws.com/...`) that
+`deploy.sh` substitutes from the signed-in AWS CLI, so no
+account ID is hardcoded in the repo. The container still serves
+the models baked into its image; S3 is the versioned backup and
+the handoff point for a retrain.
+
+Full steps, including the exact clicks and the roughly $25 a
+month cost, are in `../docs/DEPLOY_AWS.md`; plain-English
+version in `WALKTHROUGH_DAY10.md`. 12 new tests in
+`tests/test_aws.py` cover the JSON, the script, and the guide.
+Still unverified: `deploy.sh` has never been run end to end (no
+Docker on the build VM, no AWS account confirmed), and there is
+no live URL until the AWS steps run.
