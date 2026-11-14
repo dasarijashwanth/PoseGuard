@@ -22,6 +22,7 @@ from pathlib import Path
 
 from experiments.eval.analysis import add_deviations
 from experiments.eval.loader import load_session
+from experiments.eval.signals import WINNER_COL, add_signals
 
 from .features import build_windows
 from .torch_mlp import evaluate_mlp_cue
@@ -93,7 +94,8 @@ def _verdict(cue: str, rows: list[dict], rule: dict,
 
 def run_benchmark(csv_path: str) -> dict:
     session = load_session(csv_path)
-    frames = add_deviations(session)
+    frames = add_signals(add_deviations(session), session)
+    frames["s_dev_new"] = frames[WINNER_COL]
     out = {"csv": csv_path, "frames": int(len(frames)), "cues": {}}
     for cue in ("head", "shoulder"):
         windows = build_windows(frames, session, cue)

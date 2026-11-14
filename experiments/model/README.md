@@ -237,3 +237,46 @@ version in `WALKTHROUGH_DAY10.md`. 12 new tests in
 Still unverified: `deploy.sh` has never been run end to end (no
 Docker on the build VM, no AWS account confirmed), and there is
 no live URL until the AWS steps run.
+
+## Day 11: New shoulder signal
+
+Day 4 said the shoulder metric is wrong for desk work, and Day 5
+showed no model fixes it. Day 11 builds a different signal.
+
+The Run 1 CSV holds only `head_tilt` and `shoulder_tilt` angles,
+no raw landmarks, so the shoulder-vs-hip and shoulder-height
+candidates are impossible from this data. Three angle-only
+candidates were built in `../eval/signals.py` and run through the
+same Days 3-4 protocol: a rolling-baseline deviation (trailing
+30 second median), a shoulder-minus-head relative deviation, and
+a jump-gated deviation that only counts frames where the raw
+shoulder angle did not jump more than 20 degrees in the last
+second. The gate targets the tracker-noise episodes that cause
+most false positives: 498 work frames jump more than 20 degrees
+while the head stays steady.
+
+The gated signal wins: at the 6 degree operating threshold it
+cuts false positives from 7 to 1 (0 at 8 degrees), against 0/5
+trials at both. At 1 degree it reaches 4/5 trials with 8 false
+positives. No candidate passes the gate (4/5 trials, 0 false
+positives). The gate fixes the noise half, not the level half:
+deliberate holds move about 2.5 degrees, ordinary work drifts
+4 to 7.
+
+The gated signal is wired into the classifier as three new
+window features (`mean_abs_sn`, `max_abs_sn`, `std_sn`) in
+`features.py`; the old shoulder level stays forbidden. Logistic
+regression on the shoulder cue improves on every metric (F1
+0.179 to 0.219, false positives 5 to 3, work flagged 134 to 109,
+calm-only accuracy 0.447 to 0.585), but the gated coefficients
+are negative, so the model still rides the Day 5 stillness
+artifact: holds are quiet, not tilted. Full numbers in
+`WALKTHROUGH_DAY11.md` and `day11_comparison.json`. The API is
+unchanged and still serves the Day 5 models; the artifacts were
+not retrained, and the live API has no trailing history to run
+the gate on.
+
+What is still missing: the camera re-run, with longer and deeper
+shoulder holds and raw landmarks recorded (hips, shoulder
+heights), so the two candidates this dataset could not test get
+their chance.

@@ -1,0 +1,246 @@
+{
+  "old": {
+    "features": [
+      "std_s",
+      "range_s",
+      "jerk_s",
+      "slope_s",
+      "corr_h_s",
+      "std_h",
+      "mean_abs_h",
+      "jerk_h"
+    ],
+    "oof_metrics": {
+      "n": 385,
+      "n_tilted": 29,
+      "n_upright": 356,
+      "accuracy": 0.548,
+      "precision_tilted": 0.104,
+      "recall_tilted": 0.655,
+      "f1_tilted": 0.179,
+      "precision_upright": 0.95,
+      "recall_upright": 0.539,
+      "f1_upright": 0.688,
+      "confusion": {
+        "tn": 192,
+        "fp": 164,
+        "fn": 10,
+        "tp": 19
+      }
+    },
+    "oof_trials": {
+      "detected_trials": 5,
+      "trials_total": 5,
+      "per_trial": [
+        {
+          "trial": 1,
+          "windows": 6,
+          "tilted_predicted": 3,
+          "detected": true
+        },
+        {
+          "trial": 2,
+          "windows": 6,
+          "tilted_predicted": 5,
+          "detected": true
+        },
+        {
+          "trial": 3,
+          "windows": 5,
+          "tilted_predicted": 4,
+          "detected": true
+        },
+        {
+          "trial": 4,
+          "windows": 6,
+          "tilted_predicted": 3,
+          "detected": true
+        },
+        {
+          "trial": 5,
+          "windows": 6,
+          "tilted_predicted": 4,
+          "detected": true
+        }
+      ],
+      "false_positive_events": 5,
+      "work_windows_tilted": 134,
+      "work_windows_total": 318
+    },
+    "threshold_sweep": [
+      {
+        "threshold": 0.3,
+        "detected_trials": 5,
+        "false_positive_events": 16
+      },
+      {
+        "threshold": 0.5,
+        "detected_trials": 5,
+        "false_positive_events": 5
+      },
+      {
+        "threshold": 0.7,
+        "detected_trials": 0,
+        "false_positive_events": 0
+      },
+      {
+        "threshold": 0.9,
+        "detected_trials": 0,
+        "false_positive_events": 0
+      }
+    ],
+    "calm_only_metrics": {
+      "n": 246,
+      "n_tilted": 25,
+      "n_upright": 221,
+      "accuracy": 0.447,
+      "precision_tilted": 0.117,
+      "recall_tilted": 0.68,
+      "f1_tilted": 0.2,
+      "precision_upright": 0.921,
+      "recall_upright": 0.421,
+      "f1_upright": 0.578,
+      "confusion": {
+        "tn": 93,
+        "fp": 128,
+        "fn": 8,
+        "tp": 17
+      }
+    },
+    "coefficients": {
+      "std_s": -1.734,
+      "range_s": -0.081,
+      "jerk_s": 0.975,
+      "slope_s": 0.474,
+      "corr_h_s": 0.375,
+      "std_h": 0.599,
+      "mean_abs_h": -1.239,
+      "jerk_h": -0.082
+    }
+  },
+  "new": {
+    "features": [
+      "std_s",
+      "range_s",
+      "jerk_s",
+      "slope_s",
+      "corr_h_s",
+      "std_h",
+      "mean_abs_h",
+      "jerk_h",
+      "mean_abs_sn",
+      "max_abs_sn",
+      "std_sn"
+    ],
+    "oof_metrics": {
+      "n": 385,
+      "n_tilted": 29,
+      "n_upright": 356,
+      "accuracy": 0.61,
+      "precision_tilted": 0.129,
+      "recall_tilted": 0.724,
+      "f1_tilted": 0.219,
+      "precision_upright": 0.964,
+      "recall_upright": 0.601,
+      "f1_upright": 0.74,
+      "confusion": {
+        "tn": 214,
+        "fp": 142,
+        "fn": 8,
+        "tp": 21
+      }
+    },
+    "oof_trials": {
+      "detected_trials": 5,
+      "trials_total": 5,
+      "per_trial": [
+        {
+          "trial": 1,
+          "windows": 6,
+          "tilted_predicted": 4,
+          "detected": true
+        },
+        {
+          "trial": 2,
+          "windows": 6,
+          "tilted_predicted": 3,
+          "detected": true
+        },
+        {
+          "trial": 3,
+          "windows": 5,
+          "tilted_predicted": 5,
+          "detected": true
+        },
+        {
+          "trial": 4,
+          "windows": 6,
+          "tilted_predicted": 4,
+          "detected": true
+        },
+        {
+          "trial": 5,
+          "windows": 6,
+          "tilted_predicted": 5,
+          "detected": true
+        }
+      ],
+      "false_positive_events": 3,
+      "work_windows_tilted": 109,
+      "work_windows_total": 318
+    },
+    "threshold_sweep": [
+      {
+        "threshold": 0.3,
+        "detected_trials": 5,
+        "false_positive_events": 14
+      },
+      {
+        "threshold": 0.5,
+        "detected_trials": 5,
+        "false_positive_events": 3
+      },
+      {
+        "threshold": 0.7,
+        "detected_trials": 0,
+        "false_positive_events": 0
+      },
+      {
+        "threshold": 0.9,
+        "detected_trials": 0,
+        "false_positive_events": 0
+      }
+    ],
+    "calm_only_metrics": {
+      "n": 246,
+      "n_tilted": 25,
+      "n_upright": 221,
+      "accuracy": 0.585,
+      "precision_tilted": 0.165,
+      "recall_tilted": 0.76,
+      "f1_tilted": 0.271,
+      "precision_upright": 0.954,
+      "recall_upright": 0.566,
+      "f1_upright": 0.71,
+      "confusion": {
+        "tn": 125,
+        "fp": 96,
+        "fn": 6,
+        "tp": 19
+      }
+    },
+    "coefficients": {
+      "std_s": -1.824,
+      "range_s": -0.237,
+      "jerk_s": 1.0,
+      "slope_s": 0.464,
+      "corr_h_s": 0.293,
+      "std_h": 0.458,
+      "mean_abs_h": -0.976,
+      "jerk_h": -0.057,
+      "mean_abs_sn": -1.775,
+      "max_abs_sn": -1.627,
+      "std_sn": 0.797
+    }
+  }
+}

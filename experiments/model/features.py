@@ -16,6 +16,14 @@ and how it moves together with the head. If those features cannot
 separate the holds from desk work, the honest answer is "no signal",
 not a better threshold.
 
+Day 11 adds three gated-signal features (mean_abs_sn, max_abs_sn,
+std_sn) from the winning replacement signal, the jump-gated
+deviation (see experiments.eval.signals). Those are stats of the
+gated signal, not of the raw level: the gated series is NaN wherever
+the tracker was jumping, so the classifier only ever sees the level
+on frames the tracker was sane. The old level names stay banned
+(see test_shoulder_features_never_include_shoulder_level).
+
 Labels come from the protocol, not from a threshold: windows fully
 inside a trial hold window are labelled tilted (the user was told to
 hold a tilt); windows from the ordinary-work step, and the ready/rest
@@ -44,7 +52,8 @@ HEAD_FEATURES = [
     "jerk_h",        # mean |frame-to-frame change| of head deviation
 ]
 
-# Shoulder cue: NO shoulder level. Only dynamics, drift, and coupling.
+# Shoulder cue: NO raw shoulder level. Only dynamics, drift, and
+# coupling, plus Day 11 gated-signal stats (see the module docstring).
 SHOULDER_FEATURES = [
     "std_s",         # how jumpy the shoulder line is
     "range_s",       # max - min shoulder deviation in the window
@@ -54,20 +63,29 @@ SHOULDER_FEATURES = [
     "std_h",         # head steadiness (context: still vs moving)
     "mean_abs_h",    # head level (context: head tilting along?)
     "jerk_h",        # head jumpiness (context)
+    "mean_abs_sn",   # mean |gated shoulder deviation| (Day 11 signal)
+    "max_abs_sn",    # largest |gated shoulder deviation|
+    "std_sn",        # steadiness of the gated shoulder deviation
 ]
 
 FEATURES = {"head": HEAD_FEATURES, "shoulder": SHOULDER_FEATURES}
 
 
-def window_features(h_dev: np.ndarray, s_dev: np.ndarray) -> dict:
+def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
+                    s_new: np.ndarray | None = None) -> dict:
     """Features for one window of deviations.
 
     Frames where the tracker was lost carry NaN deviations; they are
     dropped before any feature is computed (at least 3 finite frames
-    are needed, otherwise the window says nothing). All eleven
+    are needed, otherwise the window says nothing). All fourteen
     features are always returned, even though each cue's model only
     trains on its own list: the calm-only check in train.py needs
-    std_s for the head cue too."""
+    std_s for the head cue too. `s_new` is the Day 11 gated
+    deviation series for the same window (NaN where the jump gate
+    rejected a frame); without it the three gated features are 0.0,
+    which is what the live API sees, since it has no trailing
+    history to run the gate on.
+    """
     h = np.asarray(h_dev, dtype=float)
     s = np.asarray(s_dev, dtype=float)
     if len(h) == 0:
@@ -84,6 +102,17 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray) -> dict:
             corr = 0.0
     slope_s = float(np.polyfit(np.arange(len(s)), s, 1)[0]) \
         if len(s) > 1 else 0.0
+    if s_new is None:
+        gated = {"mean_abs_sn": 0.0, "max_abs_sn": 0.0, "std_sn": 0.0}
+    else:
+        sn = np.asarray(s_new, dtype=float)[valid]
+        sn = sn[np.isfinite(sn)]
+        if len(sn) < 3:
+            gated = {"mean_abs_sn": 0.0, "max_abs_sn": 0.0, "std_sn": 0.0}
+        else:
+            gated = {"mean_abs_sn": float(np.mean(np.abs(sn))),
+                     "max_abs_sn": float(np.max(np.abs(sn))),
+                     "std_sn": float(np.std(sn))}
     return {
         "mean_abs_h": float(np.mean(np.abs(h))),
         "max_abs_h": float(np.max(np.abs(h))),
@@ -96,6 +125,7 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray) -> dict:
         "jerk_s": float(np.mean(np.abs(np.diff(s)))) if len(s) > 1 else 0.0,
         "slope_s": slope_s,
         "corr_h_s": corr,
+        **gated,
     }
 
 
@@ -132,8 +162,11 @@ def build_windows(frames: pd.DataFrame, session, cue: str) -> pd.DataFrame:
             if int((w["tracking"] == 1).sum()) < MIN_TRACKED:
                 continue
             try:
+                s_new = (w["s_dev_new"].to_numpy()
+                         if "s_dev_new" in w.columns else None)
                 feats = window_features(w["h_dev"].to_numpy(),
-                                        w["s_dev"].to_numpy())
+                                        w["s_dev"].to_numpy(),
+                                        s_new=s_new)
             except ValueError:
                 continue  # too few valid samples: window says nothing
             t_start = float(w["elapsed_s"].iloc[0])

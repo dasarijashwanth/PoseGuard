@@ -61,6 +61,7 @@ from sklearn.preprocessing import StandardScaler
 
 from experiments.eval.analysis import add_deviations
 from experiments.eval.loader import load_session
+from experiments.eval.signals import WINNER_COL, add_signals
 
 from .features import FEATURES, build_windows
 from .tracking import log_training_run
@@ -227,9 +228,16 @@ def evaluate_cue(windows: pd.DataFrame, cue: str,
 
 
 def train_session(csv_path: str, model_choice: str = "auto") -> dict:
-    """Full Day 5 run on one validation CSV."""
+    """Full Day 5 run on one validation CSV.
+
+    Day 11: the frames also carry the replacement-signal columns,
+    and the winning signal (see experiments.eval.signals.WINNER_COL)
+    is exposed as s_dev_new so the shoulder windows include the
+    gated-signal features. The head cue is untouched.
+    """
     session = load_session(csv_path)
-    frames = add_deviations(session)
+    frames = add_signals(add_deviations(session), session)
+    frames["s_dev_new"] = frames[WINNER_COL]
     out = {"csv": csv_path, "frames": int(len(frames)),
            "model_choice": model_choice, "cues": {}}
     for cue in ("head", "shoulder"):
