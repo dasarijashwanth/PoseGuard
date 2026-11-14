@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 10. The Python pipeline is complete and tested (99/99 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, then a retrain on the new data.
+**Status:** Built through Day 11. The Python pipeline is complete and tested (115/115 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
 
 ## What this project is
 
@@ -214,6 +214,13 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 11 (Nov 13): New shoulder signal
+
+- The Run 1 CSV holds only two angle columns, no raw landmarks, so the planned shoulder-vs-hip and shoulder-height-asymmetry candidates are impossible from this data; the re-run must record raw landmarks. Three angle-only candidates were built and tested in `experiments/eval/signals.py`: rolling-baseline deviation, shoulder-minus-head relative deviation, and a jump-gated deviation that only counts frames the tracker did not jump on.
+- Winner is the gated signal: at the 6 degree operating threshold it cuts false positives from 7 to 1 (0 at 8 degrees), but it still detects 0/5 trials there, so no candidate passes the gate (4/5 trials, 0 false positives). The gate fixes the tracker-noise half, not the level half: deliberate holds move about 2.5 degrees while ordinary work drifts 4 to 7.
+- Wired into the model as three new gated features; logistic regression on the shoulder cue improves on every metric (F1 0.179 to 0.219, false positives 5 to 3, work windows flagged 134 to 109, calm-only accuracy 0.447 to 0.585), but the coefficients are negative on the gated features, so the model is still riding the Day 5 stillness artifact (holds are quiet, not tilted). The live API still serves the Day 5 models; artifacts were not retrained.
+- 115/115 tests passing in one combined run (44 eval + 71 model, including 16 new Day 11 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY11.md` and `experiments/model/day11_comparison.json`.
 
 ### Day 10 (Nov 12): AWS deploy prep
 
