@@ -91,11 +91,14 @@ def add_deviations(session: SessionData) -> pd.DataFrame:
 
 
 def sustained_events(frames: pd.DataFrame, dev_col: str, threshold: float,
-                     persist_s: float = PERSIST_S) -> list[dict]:
+                     persist_s: float = PERSIST_S,
+                     valid_col: str | None = None) -> list[dict]:
     """All runs where |deviation| stayed beyond `threshold` for >= persist.
 
     A run breaks when tracking is lost, the deviation drops back inside
-    the threshold, or frames gap by more than MAX_GAP_S. Returns one
+    the threshold, or frames gap by more than MAX_GAP_S. `valid_col`
+    names an optional boolean column (Day 11: the jump gate); a run
+    also breaks on frames where that column is False. Returns one
     dict per firing: start/end elapsed seconds, duration, peak |dev|.
     """
     f = frames.sort_values("elapsed_s").reset_index(drop=True)
@@ -107,6 +110,8 @@ def sustained_events(frames: pd.DataFrame, dev_col: str, threshold: float,
         t = float(row.elapsed_s)
         dev = getattr(row, dev_col)
         ok = (row.tracking == 1 and pd.notna(dev) and abs(dev) > threshold)
+        if valid_col is not None:
+            ok = ok and bool(getattr(row, valid_col))
         gap = (t - prev_t) if prev_t is not None else 0.0
         if ok and start is None:
             start, peak = t, abs(dev)
@@ -126,13 +131,15 @@ def sustained_events(frames: pd.DataFrame, dev_col: str, threshold: float,
     return events
 
 
-def longest_run(frames: pd.DataFrame, dev_col: str, threshold: float) -> float:
+def longest_run(frames: pd.DataFrame, dev_col: str, threshold: float,
+                valid_col: str | None = None) -> float:
     """Longest continuous stretch (seconds) with |deviation| > threshold.
 
     Useful for "how close did it come": a 1.5 s run against a 5 s
     requirement is nowhere near a detection, however big the peak was.
     """
-    events = sustained_events(frames, dev_col, threshold, persist_s=0.0)
+    events = sustained_events(frames, dev_col, threshold, persist_s=0.0,
+                              valid_col=valid_col)
     return max((e["duration_s"] for e in events), default=0.0)
 
 
@@ -201,20 +208,26 @@ def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
 
 def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
                 threshold: float, alignment: dict,
-                persist_s: float = PERSIST_S) -> dict:
+                persist_s: float = PERSIST_S,
+                dev_col: str | None = None,
+                valid_col: str | None = None) -> dict:
     """Detection verdict for one cue at one threshold.
 
     A trial counts as detected if a sustained firing overlaps its hold
     window. Also reports the longest sustained run anywhere in the trial
     step, which shows how close a near-miss came. `persist_s` lets the
     Day 4 statistics ask \"what if the persistence rule were shorter?\"
-    without changing the 5 s rule the experiment itself used.
+    without changing the 5 s rule the experiment itself used. `dev_col`
+    overrides the deviation column (Day 11: a replacement signal);
+    `valid_col` names an optional boolean column that must also hold
+    for a frame to count (Day 11: the jump gate).
     """
     step = CUE_STEP[cue]
-    dev_col = "h_dev" if cue == "head" else "s_dev"
+    dev_col = dev_col or ("h_dev" if cue == "head" else "s_dev")
     step_frames = frames[frames["step"] == step].sort_values("elapsed_s")
     t0 = float(step_frames["elapsed_s"].iloc[0])
-    events = sustained_events(step_frames, dev_col, threshold, persist_s=persist_s)
+    events = sustained_events(step_frames, dev_col, threshold,
+                              persist_s=persist_s, valid_col=valid_col)
     detected = 0
     per_trial = []
     for k, (lo, hi) in enumerate(_hold_windows(t0, alignment["offset_s"])):
@@ -226,20 +239,24 @@ def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
         "detected": detected, "trials_total": TRIALS_PER_CUE,
         "per_trial": per_trial,
         "events_in_step": events,
-        "longest_run_s": longest_run(step_frames, dev_col, threshold),
+        "longest_run_s": longest_run(step_frames, dev_col, threshold,
+                                     valid_col=valid_col),
     }
 
 
-def false_positives(frames: pd.DataFrame, cue: str, threshold: float) -> dict:
+def false_positives(frames: pd.DataFrame, cue: str, threshold: float,
+                    dev_col: str | None = None,
+                    valid_col: str | None = None) -> dict:
     """Sustained firings during the ordinary-work sample (must be zero).
 
     Also returns what the experiment itself recorded, so the two can be
     compared: the page counted firings with its (then buggy) linear
     deviation, this harness recounts them with circular math.
+    `dev_col` / `valid_col` are the Day 11 overrides (see analyze_cue).
     """
-    dev_col = "h_dev" if cue == "head" else "s_dev"
+    dev_col = dev_col or ("h_dev" if cue == "head" else "s_dev")
     work = frames[frames["step"] == "work"].sort_values("elapsed_s")
-    events = sustained_events(work, dev_col, threshold)
+    events = sustained_events(work, dev_col, threshold, valid_col=valid_col)
     recorded = frames[(frames["step"] == "work")
                       & (frames["cue_detected"] == cue)]
     return {"count": len(events), "events": events,
