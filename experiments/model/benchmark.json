@@ -5,218 +5,577 @@
     "head": {
       "n_windows": 383,
       "n_tilted_windows": 23,
-      "rows": [
-        {
-          "model": "logistic_regression",
-          "accuracy": 0.446,
-          "precision_tilted": 0.043,
-          "recall_tilted": 0.391,
-          "f1_tilted": 0.078,
-          "detected_trials": 1,
-          "false_positive_events": 6,
-          "work_windows_tilted": 172,
-          "work_windows_total": 318
-        },
-        {
-          "model": "random_forest",
-          "accuracy": 0.932,
-          "precision_tilted": 0.0,
-          "recall_tilted": 0.0,
-          "f1_tilted": 0.0,
-          "detected_trials": 0,
-          "false_positive_events": 0,
-          "work_windows_tilted": 1,
-          "work_windows_total": 318
-        },
-        {
-          "model": "mlp",
-          "accuracy": 0.671,
-          "precision_tilted": 0.036,
-          "recall_tilted": 0.174,
-          "f1_tilted": 0.06,
-          "detected_trials": 1,
-          "false_positive_events": 4,
-          "work_windows_tilted": 100,
-          "work_windows_total": 318
-        }
-      ],
       "rule_baseline": {
         "detected_trials": 0,
         "false_positive_events": 0
       },
-      "mlp_threshold_sweep": [
-        {
-          "threshold": 0.3,
-          "detected_trials": 4,
-          "false_positive_events": 2
+      "feature_sets": {
+        "old": {
+          "features": [
+            "mean_abs_h",
+            "max_abs_h",
+            "mean_h",
+            "std_h",
+            "frac_h_gt5",
+            "jerk_h"
+          ],
+          "rows": [
+            {
+              "model": "logistic_regression",
+              "accuracy": 0.446,
+              "precision_tilted": 0.043,
+              "recall_tilted": 0.391,
+              "f1_tilted": 0.078,
+              "detected_trials": 1,
+              "false_positive_events": 6,
+              "work_windows_tilted": 172,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.427
+            },
+            {
+              "model": "random_forest",
+              "accuracy": 0.932,
+              "precision_tilted": 0.0,
+              "recall_tilted": 0.0,
+              "f1_tilted": 0.0,
+              "detected_trials": 0,
+              "false_positive_events": 0,
+              "work_windows_tilted": 1,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.895
+            },
+            {
+              "model": "mlp",
+              "accuracy": 0.671,
+              "precision_tilted": 0.036,
+              "recall_tilted": 0.174,
+              "f1_tilted": 0.06,
+              "detected_trials": 1,
+              "false_positive_events": 4,
+              "work_windows_tilted": 100,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.685
+            }
+          ],
+          "rule_baseline": {
+            "detected_trials": 0,
+            "false_positive_events": 0
+          },
+          "mlp_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 4,
+              "false_positive_events": 2
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 1,
+              "false_positive_events": 4
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "sk_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 4,
+              "false_positive_events": 9
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 1,
+              "false_positive_events": 6
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "mlp_calm_accuracy": 0.685,
+          "best_sk_calm_accuracy": 0.427,
+          "mlp_split_metrics": {
+            "n": 115,
+            "n_tilted": 7,
+            "n_upright": 108,
+            "accuracy": 0.93,
+            "precision_tilted": 0.444,
+            "recall_tilted": 0.571,
+            "f1_tilted": 0.5,
+            "precision_upright": 0.972,
+            "recall_upright": 0.954,
+            "f1_upright": 0.963,
+            "confusion": {
+              "tn": 103,
+              "fp": 5,
+              "fn": 3,
+              "tp": 4
+            }
+          },
+          "lr_coefficients": {
+            "mean_abs_h": -0.626,
+            "max_abs_h": -0.7,
+            "mean_h": -1.035,
+            "std_h": 0.241,
+            "frac_h_gt5": 0.589,
+            "jerk_h": -0.088
+          },
+          "rf_feature_importance": {
+            "mean_abs_h": 0.159,
+            "max_abs_h": 0.196,
+            "mean_h": 0.239,
+            "std_h": 0.181,
+            "frac_h_gt5": 0.022,
+            "jerk_h": 0.203
+          },
+          "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.06 vs 0.078. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 1/5 trials with 4 false positives, against the rule baseline of 0/5 trials and 0 false positives."
         },
-        {
-          "threshold": 0.5,
-          "detected_trials": 1,
-          "false_positive_events": 4
-        },
-        {
-          "threshold": 0.7,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        },
-        {
-          "threshold": 0.9,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        }
-      ],
-      "sk_threshold_sweep": [
-        {
-          "threshold": 0.3,
-          "detected_trials": 4,
-          "false_positive_events": 9
-        },
-        {
-          "threshold": 0.5,
-          "detected_trials": 1,
-          "false_positive_events": 6
-        },
-        {
-          "threshold": 0.7,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        },
-        {
-          "threshold": 0.9,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        }
-      ],
-      "mlp_calm_accuracy": 0.685,
-      "best_sk_calm_accuracy": 0.427,
-      "mlp_split_metrics": {
-        "n": 115,
-        "n_tilted": 7,
-        "n_upright": 108,
-        "accuracy": 0.93,
-        "precision_tilted": 0.444,
-        "recall_tilted": 0.571,
-        "f1_tilted": 0.5,
-        "precision_upright": 0.972,
-        "recall_upright": 0.954,
-        "f1_upright": 0.963,
-        "confusion": {
-          "tn": 103,
-          "fp": 5,
-          "fn": 3,
-          "tp": 4
+        "new": {
+          "features": [
+            "mean_abs_h",
+            "max_abs_h",
+            "mean_h",
+            "std_h",
+            "frac_h_gt5",
+            "jerk_h"
+          ],
+          "rows": [
+            {
+              "model": "logistic_regression",
+              "accuracy": 0.446,
+              "precision_tilted": 0.043,
+              "recall_tilted": 0.391,
+              "f1_tilted": 0.078,
+              "detected_trials": 1,
+              "false_positive_events": 6,
+              "work_windows_tilted": 172,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.427
+            },
+            {
+              "model": "random_forest",
+              "accuracy": 0.932,
+              "precision_tilted": 0.0,
+              "recall_tilted": 0.0,
+              "f1_tilted": 0.0,
+              "detected_trials": 0,
+              "false_positive_events": 0,
+              "work_windows_tilted": 1,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.895
+            },
+            {
+              "model": "mlp",
+              "accuracy": 0.671,
+              "precision_tilted": 0.036,
+              "recall_tilted": 0.174,
+              "f1_tilted": 0.06,
+              "detected_trials": 1,
+              "false_positive_events": 4,
+              "work_windows_tilted": 100,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.685
+            }
+          ],
+          "rule_baseline": {
+            "detected_trials": 0,
+            "false_positive_events": 0
+          },
+          "mlp_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 4,
+              "false_positive_events": 2
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 1,
+              "false_positive_events": 4
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "sk_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 4,
+              "false_positive_events": 9
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 1,
+              "false_positive_events": 6
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "mlp_calm_accuracy": 0.685,
+          "best_sk_calm_accuracy": 0.427,
+          "mlp_split_metrics": {
+            "n": 115,
+            "n_tilted": 7,
+            "n_upright": 108,
+            "accuracy": 0.93,
+            "precision_tilted": 0.444,
+            "recall_tilted": 0.571,
+            "f1_tilted": 0.5,
+            "precision_upright": 0.972,
+            "recall_upright": 0.954,
+            "f1_upright": 0.963,
+            "confusion": {
+              "tn": 103,
+              "fp": 5,
+              "fn": 3,
+              "tp": 4
+            }
+          },
+          "lr_coefficients": {
+            "mean_abs_h": -0.626,
+            "max_abs_h": -0.7,
+            "mean_h": -1.035,
+            "std_h": 0.241,
+            "frac_h_gt5": 0.589,
+            "jerk_h": -0.088
+          },
+          "rf_feature_importance": {
+            "mean_abs_h": 0.159,
+            "max_abs_h": 0.196,
+            "mean_h": 0.239,
+            "std_h": 0.181,
+            "frac_h_gt5": 0.022,
+            "jerk_h": 0.203
+          },
+          "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.06 vs 0.078. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 1/5 trials with 4 false positives, against the rule baseline of 0/5 trials and 0 false positives."
         }
       },
-      "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.06 vs 0.078. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 1/5 trials with 4 false positives, against the rule baseline of 0/5 trials and 0 false positives."
+      "verdict": "logistic_regression: F1 unchanged at 0.078, false positives 6 to 6. random_forest: F1 unchanged at 0.0, false positives 0 to 0. mlp: F1 unchanged at 0.06, false positives 4 to 4. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.427 (logistic_regression, old) to 0.427 (logistic_regression, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison."
     },
     "shoulder": {
       "n_windows": 385,
       "n_tilted_windows": 29,
-      "rows": [
-        {
-          "model": "logistic_regression",
-          "accuracy": 0.548,
-          "precision_tilted": 0.104,
-          "recall_tilted": 0.655,
-          "f1_tilted": 0.179,
-          "detected_trials": 5,
-          "false_positive_events": 5,
-          "work_windows_tilted": 134,
-          "work_windows_total": 318
-        },
-        {
-          "model": "random_forest",
-          "accuracy": 0.925,
-          "precision_tilted": 0.0,
-          "recall_tilted": 0.0,
-          "f1_tilted": 0.0,
-          "detected_trials": 0,
-          "false_positive_events": 0,
-          "work_windows_tilted": 0,
-          "work_windows_total": 318
-        },
-        {
-          "model": "mlp",
-          "accuracy": 0.764,
-          "precision_tilted": 0.092,
-          "recall_tilted": 0.241,
-          "f1_tilted": 0.133,
-          "detected_trials": 2,
-          "false_positive_events": 1,
-          "work_windows_tilted": 54,
-          "work_windows_total": 318
-        }
-      ],
       "rule_baseline": {
         "detected_trials": 0,
         "false_positive_events": 7
       },
-      "mlp_threshold_sweep": [
-        {
-          "threshold": 0.3,
-          "detected_trials": 5,
-          "false_positive_events": 11
+      "feature_sets": {
+        "old": {
+          "features": [
+            "std_s",
+            "range_s",
+            "jerk_s",
+            "slope_s",
+            "corr_h_s",
+            "std_h",
+            "mean_abs_h",
+            "jerk_h"
+          ],
+          "rows": [
+            {
+              "model": "logistic_regression",
+              "accuracy": 0.548,
+              "precision_tilted": 0.104,
+              "recall_tilted": 0.655,
+              "f1_tilted": 0.179,
+              "detected_trials": 5,
+              "false_positive_events": 5,
+              "work_windows_tilted": 134,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.447
+            },
+            {
+              "model": "random_forest",
+              "accuracy": 0.925,
+              "precision_tilted": 0.0,
+              "recall_tilted": 0.0,
+              "f1_tilted": 0.0,
+              "detected_trials": 0,
+              "false_positive_events": 0,
+              "work_windows_tilted": 0,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.898
+            },
+            {
+              "model": "mlp",
+              "accuracy": 0.764,
+              "precision_tilted": 0.092,
+              "recall_tilted": 0.241,
+              "f1_tilted": 0.133,
+              "detected_trials": 2,
+              "false_positive_events": 1,
+              "work_windows_tilted": 54,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.663
+            }
+          ],
+          "rule_baseline": {
+            "detected_trials": 0,
+            "false_positive_events": 7
+          },
+          "mlp_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 5,
+              "false_positive_events": 11
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 2,
+              "false_positive_events": 1
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "sk_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 5,
+              "false_positive_events": 16
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 5,
+              "false_positive_events": 5
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "mlp_calm_accuracy": 0.663,
+          "best_sk_calm_accuracy": 0.447,
+          "mlp_split_metrics": {
+            "n": 116,
+            "n_tilted": 9,
+            "n_upright": 107,
+            "accuracy": 0.698,
+            "precision_tilted": 0.067,
+            "recall_tilted": 0.222,
+            "f1_tilted": 0.103,
+            "precision_upright": 0.919,
+            "recall_upright": 0.738,
+            "f1_upright": 0.819,
+            "confusion": {
+              "tn": 79,
+              "fp": 28,
+              "fn": 7,
+              "tp": 2
+            }
+          },
+          "lr_coefficients": {
+            "std_s": -1.734,
+            "range_s": -0.081,
+            "jerk_s": 0.975,
+            "slope_s": 0.474,
+            "corr_h_s": 0.375,
+            "std_h": 0.599,
+            "mean_abs_h": -1.239,
+            "jerk_h": -0.082
+          },
+          "rf_feature_importance": {
+            "std_s": 0.129,
+            "range_s": 0.113,
+            "jerk_s": 0.14,
+            "slope_s": 0.098,
+            "corr_h_s": 0.114,
+            "std_h": 0.115,
+            "mean_abs_h": 0.138,
+            "jerk_h": 0.153
+          },
+          "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.133 vs 0.179. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 2/5 trials with 1 false positives, against the rule baseline of 0/5 trials and 7 false positives."
         },
-        {
-          "threshold": 0.5,
-          "detected_trials": 2,
-          "false_positive_events": 1
-        },
-        {
-          "threshold": 0.7,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        },
-        {
-          "threshold": 0.9,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        }
-      ],
-      "sk_threshold_sweep": [
-        {
-          "threshold": 0.3,
-          "detected_trials": 5,
-          "false_positive_events": 16
-        },
-        {
-          "threshold": 0.5,
-          "detected_trials": 5,
-          "false_positive_events": 5
-        },
-        {
-          "threshold": 0.7,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        },
-        {
-          "threshold": 0.9,
-          "detected_trials": 0,
-          "false_positive_events": 0
-        }
-      ],
-      "mlp_calm_accuracy": 0.663,
-      "best_sk_calm_accuracy": 0.447,
-      "mlp_split_metrics": {
-        "n": 116,
-        "n_tilted": 9,
-        "n_upright": 107,
-        "accuracy": 0.698,
-        "precision_tilted": 0.067,
-        "recall_tilted": 0.222,
-        "f1_tilted": 0.103,
-        "precision_upright": 0.919,
-        "recall_upright": 0.738,
-        "f1_upright": 0.819,
-        "confusion": {
-          "tn": 79,
-          "fp": 28,
-          "fn": 7,
-          "tp": 2
+        "new": {
+          "features": [
+            "std_s",
+            "range_s",
+            "jerk_s",
+            "slope_s",
+            "corr_h_s",
+            "std_h",
+            "mean_abs_h",
+            "jerk_h",
+            "mean_abs_sn",
+            "max_abs_sn",
+            "std_sn"
+          ],
+          "rows": [
+            {
+              "model": "logistic_regression",
+              "accuracy": 0.61,
+              "precision_tilted": 0.129,
+              "recall_tilted": 0.724,
+              "f1_tilted": 0.219,
+              "detected_trials": 5,
+              "false_positive_events": 3,
+              "work_windows_tilted": 109,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.585
+            },
+            {
+              "model": "random_forest",
+              "accuracy": 0.919,
+              "precision_tilted": 0.0,
+              "recall_tilted": 0.0,
+              "f1_tilted": 0.0,
+              "detected_trials": 0,
+              "false_positive_events": 0,
+              "work_windows_tilted": 0,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.89
+            },
+            {
+              "model": "mlp",
+              "accuracy": 0.696,
+              "precision_tilted": 0.133,
+              "recall_tilted": 0.552,
+              "f1_tilted": 0.215,
+              "detected_trials": 4,
+              "false_positive_events": 3,
+              "work_windows_tilted": 82,
+              "work_windows_total": 318,
+              "calm_accuracy": 0.638
+            }
+          ],
+          "rule_baseline": {
+            "detected_trials": 0,
+            "false_positive_events": 7
+          },
+          "mlp_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 5,
+              "false_positive_events": 10
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 4,
+              "false_positive_events": 3
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "sk_threshold_sweep": [
+            {
+              "threshold": 0.3,
+              "detected_trials": 5,
+              "false_positive_events": 14
+            },
+            {
+              "threshold": 0.5,
+              "detected_trials": 5,
+              "false_positive_events": 3
+            },
+            {
+              "threshold": 0.7,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            },
+            {
+              "threshold": 0.9,
+              "detected_trials": 0,
+              "false_positive_events": 0
+            }
+          ],
+          "mlp_calm_accuracy": 0.638,
+          "best_sk_calm_accuracy": 0.585,
+          "mlp_split_metrics": {
+            "n": 116,
+            "n_tilted": 9,
+            "n_upright": 107,
+            "accuracy": 0.681,
+            "precision_tilted": 0.088,
+            "recall_tilted": 0.333,
+            "f1_tilted": 0.14,
+            "precision_upright": 0.927,
+            "recall_upright": 0.71,
+            "f1_upright": 0.804,
+            "confusion": {
+              "tn": 76,
+              "fp": 31,
+              "fn": 6,
+              "tp": 3
+            }
+          },
+          "lr_coefficients": {
+            "std_s": -1.824,
+            "range_s": -0.237,
+            "jerk_s": 1.0,
+            "slope_s": 0.464,
+            "corr_h_s": 0.293,
+            "std_h": 0.458,
+            "mean_abs_h": -0.976,
+            "jerk_h": -0.057,
+            "mean_abs_sn": -1.775,
+            "max_abs_sn": -1.627,
+            "std_sn": 0.797
+          },
+          "rf_feature_importance": {
+            "std_s": 0.064,
+            "range_s": 0.071,
+            "jerk_s": 0.084,
+            "slope_s": 0.05,
+            "corr_h_s": 0.06,
+            "std_h": 0.057,
+            "mean_abs_h": 0.075,
+            "jerk_h": 0.088,
+            "mean_abs_sn": 0.165,
+            "max_abs_sn": 0.186,
+            "std_sn": 0.1
+          },
+          "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.215 vs 0.219. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 4/5 trials with 3 false positives, against the rule baseline of 0/5 trials and 7 false positives."
         }
       },
-      "verdict": "The MLP does NOT beat the best scikit-learn model (logistic_regression): F1 0.133 vs 0.179. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 2/5 trials with 1 false positives, against the rule baseline of 0/5 trials and 7 false positives."
+      "verdict": "logistic_regression: F1 0.179 to 0.219, false positives 5 to 3, work flagged 134 to 109. random_forest: F1 unchanged at 0.0, false positives 0 to 0. mlp: F1 0.133 to 0.215, false positives 1 to 3, work flagged 54 to 82. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.447 (logistic_regression, old) to 0.585 (logistic_regression, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison."
     }
   }
 }

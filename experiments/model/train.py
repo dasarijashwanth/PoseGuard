@@ -143,14 +143,18 @@ def _trial_verdicts(windows: pd.DataFrame, y_pred: np.ndarray) -> dict:
 
 
 def evaluate_cue(windows: pd.DataFrame, cue: str,
-                 model_choice: str = "auto") -> dict:
+                 model_choice: str = "auto",
+                 features: list[str] | None = None) -> dict:
     """Train both models for one cue; return metrics + trained models.
 
     `model_choice` is "auto" (train both, keep the better by
     out-of-fold F1) or one model name, to force a comparison run
     for MLflow (Day 6). A forced run trains only that model.
+    `features` overrides FEATURES[cue] (Day 12: run the same models
+    on the pre-Day-11 feature list to reproduce Day 8). Calm-only
+    accuracy is reported per model as well as for the best model.
     """
-    feats = FEATURES[cue]
+    feats = list(features) if features is not None else FEATURES[cue]
     X = windows[feats].to_numpy(dtype=float)
     y = windows["label"].to_numpy(dtype=int)
     groups = windows["group"].to_numpy(dtype=int)
@@ -169,6 +173,10 @@ def evaluate_cue(windows: pd.DataFrame, cue: str,
                              "use 'auto', 'logistic_regression' or "
                              "'random_forest'")
     results, trained = {}, {}
+    # Calm mask, shared by the per-model calm-only checks below and
+    # the best-model calm check at the end of this function.
+    calm = windows["std_s"] < CALM_STD_S
+    calm_y = y[calm.to_numpy()]
     for name, model in models:
         model.fit(X_tr, y_tr)
         trained[name] = model
@@ -179,6 +187,8 @@ def evaluate_cue(windows: pd.DataFrame, cue: str,
             "oof_metrics": _window_metrics(y, oof_pred),
             "oof_trials": _trial_verdicts(windows, oof_pred),
             "oof_pred": [int(p) for p in oof_pred],
+            "calm_only_metrics": _window_metrics(
+                calm_y, oof_pred[calm.to_numpy()]),
         }
         if name == "random_forest":
             results[name]["feature_importance"] = {
@@ -207,8 +217,8 @@ def evaluate_cue(windows: pd.DataFrame, cue: str,
                       "false_positive_events": t["false_positive_events"]})
     # Calm-only check on the winning model's out-of-fold predictions:
     # does the signal survive once tracker-noise windows are removed?
-    calm = windows["std_s"] < CALM_STD_S
-    calm_metrics = _window_metrics(y[calm.to_numpy()],
+    # (Same calm mask as the per-model checks above.)
+    calm_metrics = _window_metrics(calm_y,
                                    np.array(best["oof_pred"])[calm.to_numpy()])
     return {
         "cue": cue, "features": feats,

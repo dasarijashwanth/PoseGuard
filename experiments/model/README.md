@@ -238,6 +238,46 @@ Still unverified: `deploy.sh` has never been run end to end (no
 Docker on the build VM, no AWS account confirmed), and there is
 no live URL until the AWS steps run.
 
+## Day 12: RF + MLP on the gated signal
+
+Day 11 showed logistic regression improving on the three gated
+features. Day 12 runs the other two models on both feature sets,
+old (Day 8 list) and new (Day 11 list with the gated stats), for
+both cues, on the same grouped 5-fold CV by trial and the same
+out-of-fold protocol as Day 8. The head cue is unchanged by Day
+11, so its old and new rows are the same by construction.
+
+The old-feature rows reproduce Day 8 exactly, every number, for
+all three models on both cues, so the comparison is apples to
+apples. On the shoulder cue with the new features: the MLP
+improves from F1 0.133 to 0.215, recall 0.241 to 0.552, trials
+2/5 to 4/5, but false positives 1 to 3 and work windows flagged
+54 to 82, and its calm-only accuracy slips from 0.663 to 0.638.
+The random forest still detects 0/5 trials with F1 0.000, even
+though the gated features take 45 percent of its importance
+(max_abs_sn 0.186, mean_abs_sn 0.165, std_sn 0.100). Logistic
+regression is unchanged from Day 11 (F1 0.219, 5/5 trials, 3
+false positives), and its gated coefficients stay negative
+(mean_abs_sn -1.775, max_abs_sn -1.627), so the model still
+rides the Day 5 stillness artifact: holds are quiet, not tilted.
+
+No model passes the gate on either feature set. The closest any
+model has come is now two ways: logistic regression on the new
+features, 5/5 trials with 3 false positives, and the MLP on the
+new features, 4/5 trials with 3 false positives. Both fail on
+the same half of the gate. Full numbers in `WALKTHROUGH_DAY12.md`,
+`BENCHMARK.md`, and `benchmark.json`.
+
+What changed in code: `benchmark.py` evaluates each cue twice,
+once per feature set, through a `features` override on
+`evaluate_cue` and `evaluate_mlp_cue`; calm-only accuracy is
+now reported per model, not just for the best model; the Day 12
+report section appends to `BENCHMARK.md` without touching the
+Day 8 and Day 11 sections. `features.py` keeps the Day 8 lists
+as `OLD_SHOULDER_FEATURES` and `OLD_FEATURES` for
+reproduction. The API is unchanged and still serves the Day 5
+models; the artifacts were not retrained.
+
 ## Day 11: New shoulder signal
 
 Day 4 said the shoulder metric is wrong for desk work, and Day 5

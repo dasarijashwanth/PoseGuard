@@ -70,6 +70,24 @@ SHOULDER_FEATURES = [
 
 FEATURES = {"head": HEAD_FEATURES, "shoulder": SHOULDER_FEATURES}
 
+# Shoulder cue before Day 11: the same 8 dynamics and coupling
+# features, without the three gated-signal stats. Day 12 keeps this
+# list so the old-feature benchmark reproduces Day 8 exactly.
+OLD_SHOULDER_FEATURES = [
+    "std_s",         # how jumpy the shoulder line is
+    "range_s",       # max - min shoulder deviation in the window
+    "jerk_s",        # mean |frame-to-frame change| of shoulder deviation
+    "slope_s",       # linear drift of the shoulder line (deg per frame)
+    "corr_h_s",      # head/shoulder coupling inside the window
+    "std_h",         # head steadiness (context: still vs moving)
+    "mean_abs_h",    # head level (context: head tilting along?)
+    "jerk_h",        # head jumpiness (context)
+]
+
+# Day 11 changed nothing for the head cue, so its old and new lists
+# are the same by construction.
+OLD_FEATURES = {"head": HEAD_FEATURES, "shoulder": OLD_SHOULDER_FEATURES}
+
 
 def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
                     s_new: np.ndarray | None = None) -> dict:

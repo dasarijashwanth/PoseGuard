@@ -178,7 +178,8 @@ def _scale_fit(X_tr: np.ndarray) -> StandardScaler:
 
 
 def evaluate_mlp_cue(windows: pd.DataFrame, cue: str,
-                     seed: int = RANDOM_STATE) -> dict:
+                     seed: int = RANDOM_STATE,
+                     features: list[str] | None = None) -> dict:
     """Grouped 5-fold out-of-fold evaluation of the MLP for one cue.
 
     Same protocol as train.evaluate_cue: a plain 70/30 split for a
@@ -186,9 +187,11 @@ def evaluate_mlp_cue(windows: pd.DataFrame, cue: str,
     out-of-fold numbers, a decision-threshold sweep on the OOF
     probabilities, and the calm-only check. Returns the same shape
     as evaluate_cue (minus the sklearn model list), with "mlp" as
-    the single model entry.
+    the single model entry. `features` overrides FEATURES[cue]
+    (Day 12: run the MLP on the pre-Day-11 feature list to
+    reproduce Day 8).
     """
-    feats = FEATURES[cue]
+    feats = list(features) if features is not None else FEATURES[cue]
     X = windows[feats].to_numpy(dtype=float)
     y = windows["label"].to_numpy(dtype=int)
     groups = windows["group"].to_numpy(dtype=int)

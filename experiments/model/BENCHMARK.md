@@ -88,3 +88,63 @@ are quieter than work windows (gated mean 2.04 vs 5.08), so the model
 still rides the Day 5 stillness artifact. A better signal on the same
 one session does not pass the gate. The fix is still the re-run data,
 now with raw landmarks recorded.
+
+## Day 12: RF + MLP on the gated signal
+
+Day 11 wired the jump-gated shoulder deviation into the classifier as three new features (mean_abs_sn, max_abs_sn, std_sn) and showed logistic regression improving on every metric. Day 12 asks whether the other two models improve too, on the same grouped 5-fold CV by trial and the same out-of-fold protocol as Day 8. Each cue is run twice: old features (Day 8 list) and new features (Day 11 list). The head cue is unchanged by Day 11, so its old and new rows are the same by construction. The gate is still 4/5 trials with 0 false positives.
+
+### Head (383 windows, 23 tilted)
+
+Old features (6):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.446 | 0.043 | 0.391 | 0.078 | 1/5 | 6 | 172/318 | 0.427 |
+| random_forest | 0.932 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 1/318 | 0.895 |
+| mlp | 0.671 | 0.036 | 0.174 | 0.060 | 1/5 | 4 | 100/318 | 0.685 |
+
+New features (6):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.446 | 0.043 | 0.391 | 0.078 | 1/5 | 6 | 172/318 | 0.427 |
+| random_forest | 0.932 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 1/318 | 0.895 |
+| mlp | 0.671 | 0.036 | 0.174 | 0.060 | 1/5 | 4 | 100/318 | 0.685 |
+
+Rule baseline: 0/5 trials, 0 false positives.
+
+MLP threshold sweep, new features (trials / false positives): 0.3: 4/5, 2 FP, 0.5: 1/5, 4 FP, 0.7: 0/5, 0 FP, 0.9: 0/5, 0 FP
+
+**Verdict:** logistic_regression: F1 unchanged at 0.078, false positives 6 to 6. random_forest: F1 unchanged at 0.0, false positives 0 to 0. mlp: F1 unchanged at 0.06, false positives 4 to 4. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.427 (logistic_regression, old) to 0.427 (logistic_regression, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison.
+
+### Shoulder (385 windows, 29 tilted)
+
+Old features (8):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.548 | 0.104 | 0.655 | 0.179 | 5/5 | 5 | 134/318 | 0.447 |
+| random_forest | 0.925 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/318 | 0.898 |
+| mlp | 0.764 | 0.092 | 0.241 | 0.133 | 2/5 | 1 | 54/318 | 0.663 |
+
+New features (11):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.610 | 0.129 | 0.724 | 0.219 | 5/5 | 3 | 109/318 | 0.585 |
+| random_forest | 0.919 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/318 | 0.890 |
+| mlp | 0.696 | 0.133 | 0.552 | 0.215 | 4/5 | 3 | 82/318 | 0.638 |
+
+Rule baseline: 0/5 trials, 7 false positives.
+
+MLP threshold sweep, new features (trials / false positives): 0.3: 5/5, 10 FP, 0.5: 4/5, 3 FP, 0.7: 0/5, 0 FP, 0.9: 0/5, 0 FP
+
+Logistic regression coefficients on the gated features (new set): {'mean_abs_sn': -1.775, 'max_abs_sn': -1.627, 'std_sn': 0.797}.
+
+Random forest importances on the gated features (new set): {'mean_abs_sn': 0.165, 'max_abs_sn': 0.186, 'std_sn': 0.1}.
+
+**Verdict:** logistic_regression: F1 0.179 to 0.219, false positives 5 to 3, work flagged 134 to 109. random_forest: F1 unchanged at 0.0, false positives 0 to 0. mlp: F1 0.133 to 0.215, false positives 1 to 3, work flagged 54 to 82. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.447 (logistic_regression, old) to 0.585 (logistic_regression, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison.
+
+## What the gated features mean
+
+The gated features help logistic regression and the MLP on F1, and leave the random forest where it was, but they do not hand any model a real tilt signal. The MLP gain comes with more false positives (1 to 3) and its calm-only accuracy slips a little, so the extra detections are not cleaner signal. Check the trial and false-positive columns before believing any F1 move: the gate, not accuracy, is the honest score. The fix is still the re-run data (longer, deeper holds, more trials, raw landmarks), not a fancier model or a cleaner feature.
