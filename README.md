@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 11. The Python pipeline is complete and tested (115/115 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
+**Status:** Built through Day 12. The Python pipeline is complete and tested (123/123 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
 
 ## What this project is
 
@@ -214,6 +214,12 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 12 (Nov 14): RF + MLP benchmark on the new gated signal
+
+- Day 11 showed logistic regression improving on the gated features. Day 12 runs the other two models, random forest and MLP, on both feature sets (old 8 vs new 11) for both cues, same grouped 5-fold CV by trial as Day 8. The old-feature rows reproduce Day 8 exactly, every number.
+- Shoulder, new features: MLP F1 0.133 to 0.215, recall 0.241 to 0.552, trials 2/5 to 4/5, but false positives 1 to 3 and work flagged 54 to 82, calm-only accuracy 0.663 to 0.638. The forest still detects 0/5 with F1 0.000, even though the gated features take 45 percent of its importance. Logistic regression is unchanged from Day 11 (F1 0.219, 5/5, 3 FP), and its gated coefficients stay negative, so the stillness artifact persists. Head is identical old vs new, as expected. No model passes the gate on either feature set.
+- 123/123 tests passing in one combined run (44 eval + 79 model, including 8 new Day 12 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY12.md`, `experiments/model/BENCHMARK.md`, and `experiments/model/benchmark.json`.
 
 ### Day 11 (Nov 13): New shoulder signal
 
