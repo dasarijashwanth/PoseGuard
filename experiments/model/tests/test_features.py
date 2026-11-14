@@ -7,6 +7,49 @@ from experiments.model.features import (FEATURES, build_windows,
                                         window_features)
 
 
+def test_gated_features_default_to_zero_without_new_signal(flat_window):
+    h, s = flat_window
+    f = window_features(h, s)
+    assert f["mean_abs_sn"] == pytest.approx(0.0)
+    assert f["max_abs_sn"] == pytest.approx(0.0)
+    assert f["std_sn"] == pytest.approx(0.0)
+
+
+def test_gated_features_measure_the_new_signal(tilted_window):
+    h, s = tilted_window
+    s_new = np.full(len(s), 2.0)
+    f = window_features(h, s, s_new)
+    assert f["mean_abs_sn"] == pytest.approx(2.0)
+    assert f["max_abs_sn"] == pytest.approx(2.0)
+    assert f["std_sn"] == pytest.approx(0.0)
+
+
+def test_gated_features_ignore_nan_frames():
+    h = np.zeros(10)
+    s = np.zeros(10)
+    s_new = np.array([2.0, np.nan, 2.0, np.nan, 2.0,
+                      2.0, 2.0, 2.0, 2.0, 2.0])
+    f = window_features(h, s, s_new)
+    assert f["mean_abs_sn"] == pytest.approx(2.0)
+    assert f["max_abs_sn"] == pytest.approx(2.0)
+
+
+def test_build_windows_carries_the_gated_features(run1_frames):
+    frames, session = run1_frames
+    frames["s_dev_new"] = frames["s_dev"]
+    w = build_windows(frames, session, "shoulder")
+    for col in ("mean_abs_sn", "max_abs_sn", "std_sn"):
+        assert col in w.columns
+        assert np.isfinite(w[col]).all()
+
+
+def test_build_windows_without_new_signal_is_zero(run1_frames):
+    frames, session = run1_frames
+    frames = frames.drop(columns=["s_dev_new"])
+    w = build_windows(frames, session, "shoulder")
+    assert (w["mean_abs_sn"] == 0.0).all()
+
+
 def test_flat_window_features(flat_window):
     h, s = flat_window
     f = window_features(h, s)

@@ -22,7 +22,8 @@ def _synthetic_windows(seed=0, n_tilted=20, n_upright=40):
                      "frac_h_gt5": 1.0,
                      "jerk_h": 0.1 + abs(rng.normal(0, 0.05)),
                      "std_s": 0.2, "range_s": 0.5, "jerk_s": 0.1,
-                     "slope_s": 0.0, "corr_h_s": 0.0})
+                     "slope_s": 0.0, "corr_h_s": 0.0,
+                     "mean_abs_sn": 2.5, "max_abs_sn": 3.0, "std_sn": 0.3})
     for i in range(n_upright):
         rows.append({"label": 0, "step": "work", "start_s": float(100 + i),
                      "group": (i % 5) + 1,
@@ -33,7 +34,8 @@ def _synthetic_windows(seed=0, n_tilted=20, n_upright=40):
                      "frac_h_gt5": 0.0,
                      "jerk_h": 0.3 + abs(rng.normal(0, 0.1)),
                      "std_s": 0.5, "range_s": 1.0, "jerk_s": 0.2,
-                     "slope_s": 0.0, "corr_h_s": 0.0})
+                     "slope_s": 0.0, "corr_h_s": 0.0,
+                     "mean_abs_sn": 0.5, "max_abs_sn": 1.0, "std_sn": 0.5})
     return pd.DataFrame(rows)
 
 
