@@ -290,6 +290,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-name", default=None,
                         help="MLflow run name (default: day5_baseline "
                              "for --model auto, else <model>_only)")
+    parser.add_argument("--artifacts-dir", default=None,
+                        help="where --save writes the models "
+                             "(default: artifacts/ next to this module; "
+                             "Day 13: artifacts_v2/)")
     parser.add_argument("--out", default=None,
                         help="where to write results.json "
                              "(default: results.json next to this module)")
@@ -324,7 +328,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nResults written to {out}")
     if args.save:
         result["_trained"] = trained
-        saved = save_artifacts(result, Path(__file__).parent / "artifacts")
+        dest = (Path(args.artifacts_dir) if args.artifacts_dir
+                else Path(__file__).parent / "artifacts")
+        saved = save_artifacts(result, dest)
         for p in saved:
             print(f"Model saved to {p}")
     if args.mlflow:

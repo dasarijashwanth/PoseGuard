@@ -6,8 +6,10 @@
 # MLflow UI on http://localhost:5000.
 #
 # The api service builds the same image as the Dockerfile and serves
-# the baked-in trained models. Mounting ./artifacts over the image's
-# copy lets a freshly retrained model be served without rebuilding.
+# the baked-in trained models. Mounting ./artifacts_v2 over the
+# image's copy lets a freshly retrained model be served without
+# rebuilding. (Day 13: the API loads artifacts_v2/ by default;
+# artifacts/ is the old Day 5 set, kept for comparison.)
 # The mlflow service reuses that Dockerfile but passes the full eval
 # requirements as a build arg, because the slim API set (the default)
 # does not include mlflow.
@@ -20,7 +22,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./artifacts:/app/experiments/model/artifacts:ro
+      - ./artifacts_v2:/app/experiments/model/artifacts_v2:ro
 
   mlflow:
     build:

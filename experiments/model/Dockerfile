@@ -11,11 +11,11 @@
 #     docker compose up --build
 #
 # The image already contains the trained models (COPY experiments/
-# below includes artifacts/), so it serves immediately. To serve a
+# below includes artifacts_v2/), so it serves immediately. To serve a
 # freshly retrained model instead, mount it over the baked-in one:
 #
 #     docker run -p 8000:8000 \
-#       -v ./experiments/model/artifacts:/app/experiments/model/artifacts:ro \
+#       -v ./experiments/model/artifacts_v2:/app/experiments/model/artifacts_v2:ro \
 #       poseguard-api
 #
 # Day 9 changes (Render):
