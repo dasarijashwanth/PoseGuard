@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 12. The Python pipeline is complete and tested (123/123 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
+**Status:** Built through Day 13. The Python pipeline is complete and tested (150/150 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. Day 13 puts the gated models into the API: the shoulder logistic regression on the 11 gated features (F1 0.219, 5/5 trials, 3 false positives) is now the served model, and `POST /predict` scores a trailing history and applies the 5-second persistence gate, verified end to end on a real Run 1 hold. The served model still does not pass the gate, because of the 3 false positives. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
 
 ## What this project is
 
@@ -18,7 +18,7 @@ The pipeline, in order:
 2. **Evaluate:** a pandas harness (`experiments/eval/`) scores each cue against the CSV, with circular angle math that handles the plus/minus 180 degree wraparound.
 3. **Validate:** a statistics module (`experiments/eval/stats.py`) asks whether any threshold or persistence rule could make a cue pass, using Wilson confidence intervals, false-positive rates, and threshold/persistence curves.
 4. **Learn:** a scikit-learn classifier (`experiments/model/`) trains one model per cue on 1-second windows of angle data, with grouped cross-validation by trial.
-5. **Serve:** FastAPI (`GET /health`, `POST /predict`) serves the trained models.
+5. **Serve:** FastAPI (`GET /health`, `POST /predict`) serves the trained models and applies the 5-second persistence gate over a trailing history.
 6. **Track:** MLflow logs every training run to a local file store so runs can be compared instead of overwritten.
 7. **Package:** a Dockerfile and docker-compose file wrap the API and the MLflow UI.
 
@@ -120,7 +120,8 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
 │   │   ├── train.py              # per-cue training, grouped CV
 │   │   ├── api.py                # FastAPI: GET /health, POST /predict
 │   │   ├── tracking.py           # MLflow logging and comparison
-│   │   ├── artifacts/            # trained models (model_head.joblib, model_shoulder.joblib)
+│   │   ├── artifacts/            # Day 5 trained models (model_head.joblib, model_shoulder.joblib)
+  │   ├── artifacts_v2/         # Day 13 served models (gated features)
 │   │   ├── Dockerfile
 │   │   └── docker-compose.yml    # API on 8000, MLflow UI on 5000
 │   └── webcam-validation-experiment.html   # data collection page (serve locally, see below)
@@ -158,7 +159,7 @@ python -m experiments.model.train --csv <path> --save
 python -m experiments.model.train --csv <path> --model random_forest --mlflow --run-name random_forest_only
 ```
 
-`--save` writes the winning model per cue to `experiments/model/artifacts/` and the full metrics to `results.json`. `--mlflow` logs the run to the local file store instead of overwriting `results.json`. Compare runs with `python -m experiments.model.tracking` (writes `mlflow_comparison.json`), or browse them with:
+`--save` writes the winning model per cue to `experiments/model/artifacts/` and the full metrics to `results.json`. Day 13 serves from `artifacts_v2/` instead; `--artifacts-dir` aims a save at another directory. `--mlflow` logs the run to the local file store instead of overwriting `results.json`. Compare runs with `python -m experiments.model.tracking` (writes `mlflow_comparison.json`), or browse them with:
 
 ```bash
 mlflow ui --backend-store-uri experiments/model/mlruns
@@ -191,7 +192,7 @@ Or run the API plus the MLflow UI together (from `experiments/model/`):
 docker compose up --build
 ```
 
-API on http://localhost:8000, MLflow UI on http://localhost:5000. The image already contains the trained models; mounting `./artifacts` over `/app/experiments/model/artifacts` serves a freshly retrained model without rebuilding.
+API on http://localhost:8000, MLflow UI on http://localhost:5000. The image already contains the trained models; mounting `./artifacts_v2` over `/app/experiments/model/artifacts_v2` serves a freshly retrained model without rebuilding.
 
 Honest limit: Docker is not installed on the build machine, so the image was checked by tests, not by a real build. There is no live URL for the API yet.
 
@@ -214,6 +215,13 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 13 (Nov 15): serve the gated models in the API
+
+- The API served the Day 5 models with no way to run the 5-second persistence gate. Day 13 retrains the serving models on the gated features into `experiments/model/artifacts_v2/` (head logistic regression on its 6 features, shoulder logistic regression on the new 11), reproducing the Day 12 numbers exactly (shoulder LR F1 0.219, 5/5 trials, 3 false positives; head LR F1 0.078, 1/5 trials, 6 false positives). The pick is logistic regression for both cues, on the gate numbers: shoulder LR is 5/5 trials against MLP 4/5 and RF 0/5. The Day 5 artifacts in `artifacts/` are untouched.
+- `POST /predict` gains an optional `gate_s` (0 to 10 seconds): with `gate_s=5` it scores every full 1-second window in the request and answers "tilted" only when the last 5 are all tilted; a "lost" window resets the run. The response carries `gated`, `gate_s`, `windows`, and `consecutive_tilted_windows`. With `gate_s=0` the last window decides, exactly as before. Each window is smoothed and gated on its own second of samples (the Day 5 contract); the first attempt smoothed over the whole request and a Day 5 test caught it.
+- The served models still do not pass the gate (4/5 trials, 0 false positives): the shoulder LR clears the trials half at 5/5 but has 3 false positives, and its gated coefficients stay negative, so it still rides the stillness artifact. The gate itself is verified end to end: the real v2 shoulder model on a real 5-second Run 1 hold scores all five windows tilted and the gate fires, while a 2-second tilt does not.
+- 150/150 tests passing in one combined run (44 eval + 106 model, including 27 new Day 13 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY13.md` and `experiments/model/results_day13.json`.
 
 ### Day 12 (Nov 14): RF + MLP benchmark on the new gated signal
 
