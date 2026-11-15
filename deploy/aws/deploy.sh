@@ -64,7 +64,7 @@ if ! aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
   aws s3api create-bucket --bucket "${BUCKET}" --region "${REGION}" >/dev/null
   echo "Created S3 bucket ${BUCKET}"
 fi
-aws s3 sync experiments/model/artifacts/ "s3://${BUCKET}/models/" --delete
+aws s3 sync experiments/model/artifacts_v2/ "s3://${BUCKET}/models/" --delete
 echo "Synced model artifacts to s3://${BUCKET}/models/"
 
 # 4. Register the task definition with the real image URI.
