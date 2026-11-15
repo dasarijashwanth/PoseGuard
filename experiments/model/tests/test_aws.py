@@ -131,7 +131,7 @@ def test_deploy_script_covers_ecr_build_push():
 
 def test_deploy_script_backs_models_up_to_s3():
     script = _deploy_script()
-    assert "aws s3 sync experiments/model/artifacts/" in script
+    assert "aws s3 sync experiments/model/artifacts_v2/" in script
     assert "poseguard-models-" in script
     assert "create-bucket" in script
 

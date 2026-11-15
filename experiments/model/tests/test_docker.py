@@ -1,5 +1,5 @@
 """Smoke tests for the Day 6 Docker packaging, updated Day 9 for the
-Render deploy (Dockerfile, docker-compose.yml,.dockerignore).
+Render deploy (Dockerfile, docker-compose.yml, .dockerignore).
 Docker itself is NOT available on this VM, so these tests verify the
 definition is consistent instead of running a build: the base image,
 the requirements file it installs, the entrypoint it runs, the port
@@ -76,7 +76,7 @@ def test_compose_services_and_ports():
     assert api["build"]["context"] == "../.."
     assert api["build"]["dockerfile"] == "experiments/model/Dockerfile"
     assert "8000:8000" in api["ports"]
-    assert "./artifacts:/app/experiments/model/artifacts:ro" in api["volumes"]
+    assert "./artifacts_v2:/app/experiments/model/artifacts_v2:ro" in api["volumes"]
     mlflow = compose["services"]["mlflow"]
     assert "5000:5000" in mlflow["ports"]
     assert "mlflow server" in mlflow["command"]
