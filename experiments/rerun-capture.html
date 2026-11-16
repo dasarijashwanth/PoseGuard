@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoseGuard Run 2 - Camera Re-run Capture</title>
+<style>
+  :root { --bg: #0f1115; --panel: #171a21; --text: #e8eaf0; --muted: #9aa3b2;
+          --accent: #4cc38a; --warn: #e0a63c; --bad: #e05c5c; --line: #2a2f3a;
+          --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 18px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 26px 0 8px; }
+  p { margin: 8px 0; }
+  .sub { color: var(--muted); margin-top: 0; }
+  .box { background: var(--panel); border: 1px solid var(--line);
+         border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+  .box b { color: var(--accent); }
+  pre { background: #0b0d11; border: 1px solid var(--line); border-radius: 8px;
+        padding: 12px; overflow-x: auto; font: 12.5px/1.5 var(--mono);
+        color: #d6deeb; white-space: pre-wrap; }
+  code { font-family: var(--mono); font-size: 13px; }
+  button { background: var(--accent); color: #08130d; border: 0; border-radius: 8px;
+           padding: 10px 16px; font: 600 14px system-ui, sans-serif; cursor: pointer;
+           margin: 4px 6px 4px 0; }
+  button.secondary { background: #262b36; color: var(--text); }
+  button.danger { background: var(--bad); color: #fff; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .prompt-box { background: var(--panel); border: 1px solid var(--line);
+                border-radius: 10px; padding: 16px; margin: 12px 0; text-align: center; }
+  .prompt-box .phase { font: 700 11px var(--mono); letter-spacing: 0.09em;
+                       text-transform: uppercase; color: var(--accent); }
+  .prompt-box .big { font-size: 22px; font-weight: 700; margin: 6px 0 2px; }
+  .prompt-box .sub2 { color: var(--muted); }
+  .countdown { font: 700 44px var(--mono); margin: 8px 0 0; }
+  .prog { height: 8px; background: #262b36; border-radius: 4px; margin-top: 12px;
+          overflow: hidden; }
+  .prog > div { height: 100%; background: var(--accent); width: 0%; }
+  .hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 12px 0; }
+  .hud .cell { background: var(--panel); border: 1px solid var(--line);
+               border-radius: 8px; padding: 10px 12px; }
+  .hud .k { font: 700 10px var(--mono); letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--muted); }
+  .hud .v { font: 700 20px var(--mono); margin-top: 2px; }
+  .hud .v small { font-size: 12px; color: var(--muted); }
+  .targetbar { height: 10px; background: #262b36; border-radius: 5px;
+               overflow: hidden; margin-top: 6px; }
+  .targetbar > div { height: 100%; background: var(--warn); width: 0%; }
+  .targetbar > div.past { background: var(--accent); }
+  .steps { list-style: none; padding: 0; margin: 8px 0; display: flex; gap: 6px;
+           flex-wrap: wrap; }
+  .steps li { border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px;
+              font-size: 12.5px; color: var(--muted); }
+  .steps li.done { color: var(--accent); border-color: var(--accent); }
+  .steps li.now { color: #08130d; background: var(--accent); border-color: var(--accent); }
+  video { width: 100%; max-width: 640px; border-radius: 10px; display: block;
+          background: #000; }
+  #log { background: #0b0d11; border: 1px solid var(--line); border-radius: 8px;
+         padding: 10px 12px; height: 180px; overflow-y: auto;
+         font: 12px/1.6 var(--mono); color: #c8d0dd; white-space: pre-wrap; }
+  .warn { color: var(--warn); }
+  .ok { color: var(--accent); }
+  ul.tight li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PoseGuard Run 2: camera re-run capture</h1>
+  <p class="sub">Day 14 capture tool. Records a new validation session with all 33
+  pose landmarks per frame, longer and deeper holds than Run 1, so the
+  next benchmark can test what the Run 1 data could not. Everything runs
+  on-device in this tab; nothing leaves the machine except the CSV and
+  manifest you download yourself.</p>
+
+  <div class="box">
+    <h2 style="margin-top:0">How to run this file (Windows, no install)</h2>
+    <ol class="tight">
+      <li>Download this file from the repo:
+        <code>experiments/rerun-capture.html</code> in
+        <code>github.com/dasarijashwanth/PoseGuard</code>, and save it in a
+        folder by itself, for example <code>C:\poseguard\</code>.</li>
+      <li>Open PowerShell in that folder and paste this block. It serves the
+        folder on <code>http://localhost:8000/</code> using the built-in
+        <code>HttpListener</code>. Leave the PowerShell window open while
+        you record.</li>
+    </ol>
+    <pre>$listener = New-Object System.Net.HttpListener
+$listener.Prefixes.Add("http://localhost:8000/")
+$listener.Start()
+Write-Host "Serving at http://localhost:8000/ - press Ctrl+C to stop"
+while ($listener.IsListening) {
+  $ctx = $listener.GetContext()
+  $path = $ctx.Request.Url.LocalPath.TrimStart("/")
+  if ([string]::IsNullOrEmpty($path)) { $path = "rerun-capture.html" }
+  $file = Join-Path (Get-Location) $path
+  if (Test-Path $file -PathType Leaf) {
+    $bytes = [System.IO.File]::ReadAllBytes($file)
+    if ($file -like "*.html") { $ctx.Response.ContentType = "text/html" }
+    $ctx.Response.ContentLength64 = $bytes.Length
+    $ctx.Response.OutputStream.Write($bytes, 0, $bytes.Length)
+  } else {
+    $ctx.Response.StatusCode = 404
+  }
+  $ctx.Response.Close()
+}</pre>
+    <ol class="tight" start="3">
+      <li>Open <code>http://localhost:8000/rerun-capture.html</code> in
+        Chrome or Edge. Camera access needs localhost (a secure context);
+        do not open the file directly with <code>file://</code>, the
+        camera will be blocked.</li>
+      <li>Press <b>Enable camera</b>, allow access, then
+        <b>Start session</b> and follow the prompts. The whole session
+        takes about 8.5 minutes.</li>
+      <li>At the end, press <b>Download CSV</b> and
+        <b>Download manifest</b>, and send both files back for the
+        re-benchmark.</li>
+    </ol>
+  </div>
+
+  <div class="box">
+    <h2 style="margin-top:0">The protocol (Run 2)</h2>
+    <ul class="tight">
+      <li><b>Calibration:</b> sit upright and still for 5 s.</li>
+      <li><b>Head trials:</b> 5 holds, 10 s each, target <b>15 deg</b>.
+        Get ready 5 s, rest 5 s between holds.</li>
+      <li><b>Shoulder trials:</b> 5 holds, 10 s each, target <b>8 deg</b>.
+        Drop one shoulder and hold it. The live bar shows your deviation
+        against the target; tilt deeper until it turns green.</li>
+      <li><b>Work sample:</b> 5 min of ordinary desk work (typing, mouse,
+        reaching). This is the calm baseline the false-positive check
+        needs.</li>
+      <li><b>Landmark-loss test:</b> 10 s with the lens covered or out of
+        frame, so the pause-on-loss behaviour is verified.</li>
+    </ul>
+    <p>Why longer and deeper: Run 1 holds moved the shoulder angle only
+    about 2.5 deg while ordinary work drifts 4 to 7 deg, so no threshold
+    could separate them. A 10 s hold gives the 5 s persistence gate
+    real margin, and an 8 deg target sits above the drift band.</p>
+  </div>
+
+  <div class="box">
+    <h2 style="margin-top:0">Setup checklist</h2>
+    <ul class="tight">
+      <li>Frame yourself from head to hips: shoulders <b>and hips</b> must
+        stay in frame the whole session. If the tool says hips are out of
+        frame, step back from the camera.</li>
+      <li>No bright window or lamp behind you; a backlit silhouette breaks
+        landmark tracking.</li>
+      <li>Wear a plain top with sleeves; bare shoulders and busy patterns
+        confuse the tracker.</li>
+      <li>Keep the camera fixed once you start. Do not move the laptop
+        mid-session.</li>
+    </ul>
+  </div>
+
+  <video id="video" muted playsinline style="display:none"></video>
+  <canvas id="overlay" width="640" height="480" style="display:none"></canvas>
+
+  <div style="margin:12px 0">
+    <button id="btnCamera">Enable camera</button>
+    <button id="btnStopCamera" class="secondary" disabled>Stop camera</button>
+    <button id="btnEngine" class="secondary">Load pose engine</button>
+    <button id="btnStart" disabled>Start session</button>
+    <button id="btnAbort" class="danger" disabled>Abort session</button>
+    <button id="btnCsv" class="secondary" disabled>Download CSV</button>
+    <button id="btnManifest" class="secondary" disabled>Download manifest</button>
+    <button id="btnReset" class="secondary">Reset</button>
+  </div>
+  <p id="cameraMsg" class="sub"></p>
+
+  <ul class="steps" id="stepsList"></ul>
+
+  <div class="prompt-box">
+    <div class="phase" id="promptPhase">Step 1 of 6 - Setup</div>
+    <div class="big" id="promptBig">Set up, then enable the camera</div>
+    <div class="sub2" id="promptSub">Load the pose engine, allow camera access, and start the session when ready.</div>
+    <div class="countdown" id="countdown" style="display:none"></div>
+    <div class="prog" id="phaseProgWrap" style="display:none"><div id="phaseProg"></div></div>
+  </div>
+
+  <div class="hud">
+    <div class="cell"><div class="k">Tracking</div><div class="v" id="hudTrack">off</div></div>
+    <div class="cell"><div class="k">Frame rate</div><div class="v" id="hudFps">-- <small>fps</small></div></div>
+    <div class="cell"><div class="k">Head deviation</div><div class="v" id="hudHead">-- <small>deg</small></div></div>
+    <div class="cell"><div class="k">Shoulder deviation</div><div class="v" id="hudSh">-- <small>deg</small></div></div>
+  </div>
+  <div class="box" id="targetBox" style="display:none">
+    <div class="k" style="font:700 10px var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--muted)">Hold target</div>
+    <div id="targetText" style="font-weight:700; margin-top:4px">--</div>
+    <div class="targetbar"><div id="targetBar"></div></div>
+  </div>
+
+  <h2>Session log</h2>
+  <div id="log"></div>
+
+  <h2>Results</h2>
+  <div class="box" id="resultsBox">No session yet. Run a session to see the per-hold summary here.</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ================= protocol (must match experiments/eval/rerun_protocol.py) ================= */
+  var CALIB_S = 5;
+  var READY_S = 5;
+  var HOLD_S = 10;
+  var REST_S = 5;
+  var WORK_S = 300;
+  var LOSS_S = 10;
+  var TRIALS_PER_CUE = 5;
+  var TARGET_HEAD_DEG = 15;
+  var TARGET_SHOULDER_DEG = 8;
+  var DETECT_PERSIST_S = 5;
+
+  var PERSIST_MS = 5000;
+  var INFER_INTERVAL_MS = 84;   /* about 12 checks per second */
+  var EMA_ALPHA = 0.35;
+  var VISIBILITY_MIN = 0.4;
+  /* Landmarks that must be visible for a frame to count as tracked:
+     ears 7/8, shoulders 11/12, hips 23/24. Hips are required because
+     the shoulder-vs-hip signal is the point of the re-run. */
+  var REQUIRED_LM = [7, 8, 11, 12, 23, 24];
+  var LM_COUNT = 33;
+
+  var MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+  var WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
+  var VISION_ESM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm";
+  var LEGACY_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/";
+
+  /* Frame header: the nine Run 1 columns, then the Run 2 labels, then
+     all 33 landmarks as x/y/visibility. The new CSV is a superset of
+     the Run 1 schema, so the existing loader still reads it. */
+  var BASE_HEADER = "timestamp,elapsed_s,step,head_tilt,shoulder_tilt,cue_detected,tracking,head_deviation,shoulder_deviation";
+  var LM_COLS = [];
+  for (var li = 0; li < LM_COUNT; li++) {
+    LM_COLS.push("lm_" + li + "_x", "lm_" + li + "_y", "lm_" + li + "_v");
+  }
+  var FRAME_HEADER = BASE_HEADER + ",cue,hold_id,phase," + LM_COLS.join(",");
+
+  /* ================= helpers ================= */
+  function $(id) { return document.getElementById(id); }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function fmt(v, d) { return (v === null || v === undefined || isNaN(v)) ? "--" : Number(v).toFixed(d === undefined ? 1 : d); }
+  function wrapAngle(a) { while (a > 180) a -= 360; while (a < -180) a += 360; return a; }
+  function circDev(a, b) {
+    var d = (a - b) * Math.PI / 180;
+    return Math.atan2(Math.sin(d), Math.cos(d)) * 180 / Math.PI;
+  }
+  function circMean(xs) {
+    if (!xs.length) return null;
+    var s = 0, c = 0;
+    xs.forEach(function (x) { var r = x * Math.PI / 180; s += Math.sin(r); c += Math.cos(r); });
+    return Math.atan2(s / xs.length, c / xs.length) * 180 / Math.PI;
+  }
+  function angleDeg(ax, ay, bx, by) { return Math.atan2(by - ay, bx - ax) * 180 / Math.PI; }
+  function mean(xs) { return xs.length ? xs.reduce(function (s, x) { return s + x; }, 0) / xs.length : null; }
+  function std(xs) {
+    if (xs.length < 2) return xs.length ? 0 : null;
+    var m = mean(xs);
+    return Math.sqrt(xs.reduce(function (s, x) { return s + (x - m) * (x - m); }, 0) / (xs.length - 1));
+  }
+  function nowISO() { return new Date().toISOString(); }
+  function csvCell(v) {
+    if (v === null || v === undefined) return "";
+    var s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  /* ================= state ================= */
+  var S = {
+    stream: null, engine: null, engineKind: null, busy: false,
+    lastInferAt: 0, lastResultAt: 0, inferCountWindow: [], fps: 0,
+    tracking: false, smoothHead: null, smoothSh: null,
+    baseline: null, step: "setup", sessionActive: false,
+    sessionStart: 0, frames: [],
+    calib: null, trialRun: null,
+    trials: { head: [], sh: [] },
+    work: null, loss: null, lossResult: null,
+    lastFrameAt: 0, timerId: null
+  };
+
+  var els = {};
+  ["video", "overlay", "btnCamera", "btnStopCamera", "btnEngine", "btnStart",
+   "btnAbort", "btnCsv", "btnManifest", "btnReset", "cameraMsg", "stepsList",
+   "promptPhase", "promptBig", "promptSub", "countdown", "phaseProgWrap",
+   "phaseProg", "hudTrack", "hudFps", "hudHead", "hudSh", "targetBox",
+   "targetText", "targetBar", "log", "resultsBox"
+  ].forEach(function (id) { els[id] = $(id); });
+
+  var STEP_LABEL = { setup: "SETUP", calib: "CALIBRATION", head: "HEAD TRIALS",
+    shoulder: "SHOULDER TRIALS", work: "WORK SAMPLE", loss: "LANDMARK LOSS",
+    results: "RESULTS" };
+  var STEP_ORDER = ["setup", "calib", "head", "shoulder", "work", "loss"];
+
+  function log(msg) {
+    els.log.textContent += msg + "\n";
+    els.log.scrollTop = els.log.scrollHeight;
+  }
+  function setPrompt(phase, big, sub) {
+    els.promptPhase.textContent = phase;
+    els.promptBig.textContent = big;
+    els.promptSub.textContent = sub;
+  }
+  function showCountdown(text, frac) {
+    if (text === null) {
+      els.countdown.style.display = "none";
+      els.phaseProgWrap.style.display = "none";
+      return;
+    }
+    els.countdown.style.display = "";
+    els.countdown.textContent = text;
+    els.phaseProgWrap.style.display = "";
+    els.phaseProg.style.width = clamp(frac * 100, 0, 100) + "%";
+  }
+  function renderSteps() {
+    els.stepsList.innerHTML = "";
+    STEP_ORDER.forEach(function (st) {
+      var li = document.createElement("li");
+      li.textContent = STEP_LABEL[st];
+      var order = { setup: 0, calib: 1, head: 2, shoulder: 3, work: 4, loss: 5 };
+      if (S.step === "results" || order[st] < order[S.step]) li.className = "done";
+      if (S.step === st) li.className = "now";
+      els.stepsList.appendChild(li);
+    });
+  }
+  function targetDeg(cue) { return cue === "head" ? TARGET_HEAD_DEG : TARGET_SHOULDER_DEG; }
+
+  /* ================= pose engine ================= */
+  async function initEngine() {
+    if (S.engine) return true;
+    log("Loading pose engine: MediaPipe Tasks Vision Pose Landmarker Lite...");
+    try {
+      var vision = await import(VISION_ESM);
+      var fileset = await vision.FilesetResolver.forVisionTasks(WASM_URL);
+      var lm = await vision.PoseLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL_URL, delegate: "CPU" },
+        runningMode: "VIDEO", numPoses: 1
+      });
+      S.engine = lm; S.engineKind = "tasks";
+      log("Pose engine ready: MediaPipe Tasks Vision Pose Landmarker Lite, CPU delegate.");
+      return true;
+    } catch (e) {
+      log("Tasks Vision load failed (" + (e && e.message ? e.message : e) + "). Falling back to classic MediaPipe Pose (lite model).");
+    }
+    try {
+      await new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = LEGACY_BASE + "pose.js";
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      var pose = new window.Pose({ locateFile: function (f) { return LEGACY_BASE + f; } });
+      pose.setOptions({ modelComplexity: 0, smoothLandmarks: true,
+        enableSegmentation: false, minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5 });
+      await new Promise(function (resolve) {
+        pose.onResults(function (res) {
+          var lms = (res && res.poseLandmarks) ? res.poseLandmarks : null;
+          onPoseResult(lms, performance.now());
+          resolve();
+        });
+        S.legacyPose = pose;
+      });
+      S.engine = pose; S.engineKind = "legacy";
+      log("Pose engine ready: classic MediaPipe Pose solution, lite model (complexity 0).");
+      return true;
+    } catch (e2) {
+      log("Pose engine failed to load: " + (e2 && e2.message ? e2.message : e2));
+      return false;
+    }
+  }
+
+  /* ================= camera ================= */
+  async function startCamera() {
+    if (S.stream) return;
+    try {
+      S.stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
+      });
+    } catch (e) {
+      els.cameraMsg.textContent = "Camera access denied or unavailable: " + (e && e.name ? e.name : e);
+      log("Camera start failed: " + (e && e.message ? e.message : e));
+      return;
+    }
+    var v = els.video;
+    v.style.display = "";
+    v.srcObject = S.stream;
+    await v.play();
+    els.btnCamera.disabled = true;
+    els.btnStopCamera.disabled = false;
+    els.btnStart.disabled = !(S.engine && S.baseline !== null) && !S.engine;
+    els.btnStart.disabled = !S.engine;
+    els.cameraMsg.textContent = "Camera on. Load the pose engine, then start the session.";
+    log("Camera started.");
+  }
+  function stopCamera() {
+    if (S.stream) { S.stream.getTracks().forEach(function (t) { t.stop(); }); S.stream = null; }
+    els.video.pause(); els.video.srcObject = null; els.video.style.display = "none";
+    els.btnCamera.disabled = false;
+    els.btnStopCamera.disabled = true;
+    els.btnStart.disabled = true;
+    S.tracking = false;
+    log("Camera stopped.");
+  }
+
+  /* ================= inference loop ================= */
+  function inferTick() {
+    var v = els.video;
+    if (!S.engine || !S.stream || v.readyState < 2 || !v.videoWidth) return;
+    var now = performance.now();
+    if (now - S.lastInferAt < INFER_INTERVAL_MS) return;
+    if (S.busy) return;
+    S.lastInferAt = now;
+    if (S.engineKind === "tasks") {
+      S.busy = true;
+      try {
+        var res = S.engine.detectForVideo(v, now);
+        var lms = (res && res.landmarks && res.landmarks.length) ? res.landmarks[0] : null;
+        onPoseResult(lms, now);
+      } catch (e) { /* transient error: skip this frame */ }
+      S.busy = false;
+    } else if (S.engineKind === "legacy") {
+      S.busy = true;
+      S.engine.send({ image: v }).catch(function () { S.busy = false; });
+      S.busy = false;
+    }
+  }
+  setInterval(inferTick, 30);
+  setInterval(hudTick, 120);
+
+  function onPoseResult(lms, ts) {
+    S.lastResultAt = ts;
+    S.inferCountWindow.push(ts);
+    while (S.inferCountWindow.length && ts - S.inferCountWindow[0] > 1000) S.inferCountWindow.shift();
+    S.fps = S.inferCountWindow.length;
+
+    var visible = false;
+    if (lms && lms.length > 24) {
+      var vis = function (p) { return p && (p.visibility === undefined || p.visibility > VISIBILITY_MIN); };
+      visible = REQUIRED_LM.every(function (i) { return vis(lms[i]); });
+    }
+    if (!visible) {
+      if (S.tracking && S.sessionActive) log("Landmarks lost. Evaluation paused.");
+      S.tracking = false;
+      if (S.sessionActive) {
+        if (S.loss) noteLossFrame();
+        logFrame(ts, null, null, null);
+      }
+      return;
+    }
+
+    S.tracking = true;
+    var earA = angleDeg(lms[7].x, lms[7].y, lms[8].x, lms[8].y);
+    var shA = angleDeg(lms[11].x, lms[11].y, lms[12].x, lms[12].y);
+    var headRaw = circDev(earA, shA);
+    var shRaw = wrapAngle(shA);
+    if (S.smoothHead === null) { S.smoothHead = headRaw; S.smoothSh = shRaw; }
+    else {
+      S.smoothHead = wrapAngle(S.smoothHead + EMA_ALPHA * circDev(headRaw, S.smoothHead));
+      S.smoothSh = wrapAngle(S.smoothSh + EMA_ALPHA * circDev(shRaw, S.smoothSh));
+    }
+    if (S.sessionActive) {
+      feedCalibration(ts);
+      feedTrialSample(ts);
+      logFrame(ts, S.smoothHead, S.smoothSh, lms);
+    }
+  }
+
+  /* ================= frame logging ================= */
+  function currentPhase() {
+    if (S.step === "calib") return "calib";
+    if (S.step === "work") return "calm";
+    if (S.step === "loss") return "loss";
+    if (S.trialRun) return S.trialRun.phase;
+    return "";
+  }
+  function logFrame(ts, head, sh, lms) {
+    var elapsed = (ts - S.sessionStart) / 1000;
+    var devH = null, devS = null;
+    if (S.baseline && head !== null) {
+      devH = circDev(head, S.baseline.head);
+      devS = circDev(sh, S.baseline.sh);
+    }
+    var tr = S.trialRun;
+    var row = {
+      t: nowISO(), elapsed: elapsed, step: S.step,
+      head: head, sh: sh, fired: "",
+      tracking: S.tracking ? 1 : 0,
+      devH: devH, devS: devS,
+      cue: (S.step === "head" || S.step === "shoulder") ? S.step : "",
+      hold_id: tr ? tr.idx + 1 : "",
+      phase: currentPhase(),
+      lm: lms
+    };
+    S.frames.push(row);
+    if (S.step === "loss" && !S.tracking) S.loss.lossObserved = true;
+  }
+
+  /* ================= session machine ================= */
+  function startSession() {
+    if (!S.engine || !S.stream) { log("Start the camera and load the pose engine first."); return; }
+    S.sessionActive = true;
+    S.sessionStart = performance.now();
+    S.frames = [];
+    S.trials = { head: [], sh: [] };
+    S.baseline = null;
+    S.smoothHead = null; S.smoothSh = null;
+    S.calib = { trackedMs: 0, headSamples: [], shSamples: [], lastTick: 0 };
+    S.trialRun = null; S.work = null; S.loss = null; S.lossResult = null;
+    S.lastFrameAt = 0;
+    setStep("calib");
+    els.btnStart.disabled = true;
+    els.btnAbort.disabled = false;
+    els.btnCsv.disabled = true;
+    els.btnManifest.disabled = true;
+    setPrompt("Step 2 of 6 - Calibration",
+      "Sit upright and still", "Calibration runs 5 s while landmarks are tracked. The clock only runs while you are tracked.");
+    log("Session started. Calibration: sit upright and still for 5 s.");
+    S.timerId = setInterval(tick, 100);
+  }
+
+  function setStep(step) {
+    S.step = step;
+    renderSteps();
+  }
+
+  function feedCalibration(ts) {
+    if (S.step !== "calib" || !S.calib || !S.tracking) return;
+    var c = S.calib;
+    if (c.lastTick) c.trackedMs += ts - c.lastTick;
+    c.lastTick = ts;
+    c.headSamples.push(S.smoothHead);
+    c.shSamples.push(S.smoothSh);
+  }
+
+  function feedTrialSample(ts) {
+    var tr = S.trialRun;
+    if (!tr || tr.phase !== "hold" || !S.tracking || !S.baseline) return;
+    var dev = tr.cue === "head"
+      ? circDev(S.smoothHead, S.baseline.head)
+      : circDev(S.smoothSh, S.baseline.sh);
+    var dt = S.lastFrameAt ? (ts - S.lastFrameAt) / 1000 : 0.084;
+    if (Math.abs(dev) >= targetDeg(tr.cue)) tr.beyondS += dt;
+    tr.maxAbsDev = Math.max(tr.maxAbsDev, Math.abs(dev));
+    S.lastFrameAt = ts;
+  }
+
+  function tick() {
+    var now = performance.now();
+    if (!S.sessionActive) return;
+    if (S.step === "calib") {
+      var c = S.calib;
+      var frac = clamp(c.trackedMs / (CALIB_S * 1000), 0, 1);
+      showCountdown(S.tracking ? Math.ceil((CALIB_S * 1000 - c.trackedMs) / 1000) + "" : "PAUSED", frac);
+      if (c.trackedMs >= CALIB_S * 1000 && c.headSamples.length >= 15) {
+        S.baseline = { head: circMean(c.headSamples), sh: circMean(c.shSamples) };
+        log("Baseline set: head " + fmt(S.baseline.head, 1) + " deg, shoulder " + fmt(S.baseline.sh, 1) + " deg.");
+        startTrials("head");
+      }
+      return;
+    }
+    if (S.trialRun) {
+      var tr = S.trialRun;
+      var remain = tr.phaseStart + tr.phaseDur - now;
+      var fracT = clamp(1 - remain / tr.phaseDur, 0, 1);
+      if (tr.phase === "ready") showCountdown(Math.ceil(remain / 1000) + "", fracT);
+      else if (tr.phase === "hold") showCountdown((Math.max(0, remain) / 1000).toFixed(1), fracT);
+      else showCountdown("REST", fracT);
+      if (remain <= 0) advanceTrial(now);
+      return;
+    }
+    if (S.step === "work" && S.work) {
+      var remW = S.work.endsAt - now;
+      showCountdown(Math.floor(remW / 60000) + ":" + String(Math.floor(remW / 1000) % 60).padStart(2, "0"),
+        clamp(1 - remW / (WORK_S * 1000), 0, 1));
+      if (remW <= 0) {
+        S.work.done = true;
+        log("Work sample complete. Continue to the landmark-loss test.");
+        startLoss(now);
+      }
+      return;
+    }
+    if (S.step === "loss" && S.loss) {
+      var remL = S.loss.endsAt - now;
+      showCountdown(Math.ceil(remL / 1000) + "", clamp(1 - remL / (LOSS_S * 1000), 0, 1));
+      if (remL <= 0) finishLoss();
+    }
+  }
+
+  function startTrials(cue) {
+    setStep(cue);
+    S.trialRun = { cue: cue, idx: 0, phase: "ready",
+      phaseStart: performance.now(), phaseDur: READY_S * 1000,
+      beyondS: 0, maxAbsDev: 0, holdStartElapsed: 0 };
+    var cueName = cue === "head" ? "head" : "shoulder";
+    log("Starting " + cue + " trials: " + TRIALS_PER_CUE + " holds of " + HOLD_S + " s, target " + targetDeg(cue) + " deg.");
+    setPrompt("Step " + (cue === "head" ? "3" : "4") + " of 6 - " + cueName + " trials",
+      "Trial 1 of " + TRIALS_PER_CUE + " - get ready",
+      "Return to upright. On GO, tilt your " + cueName + " and hold. Hold past the " + targetDeg(cue) + " deg target until the timer ends.");
+  }
+
+  function advanceTrial(now) {
+    var tr = S.trialRun;
+    if (!tr) return;
+    if (tr.phase === "ready") {
+      tr.phase = "hold"; tr.phaseStart = now; tr.phaseDur = HOLD_S * 1000;
+      tr.beyondS = 0; tr.maxAbsDev = 0;
+      tr.holdStartElapsed = (now - S.sessionStart) / 1000;
+      setPrompt("Step " + (tr.cue === "head" ? "3" : "4") + " of 6 - " + tr.cue + " trials",
+        "GO - hold the " + tr.cue + " tilt",
+        "Hold it steady, past the " + targetDeg(tr.cue) + " deg target, until the timer ends. Watch the bar below.");
+      log("Trial " + (tr.idx + 1) + " (" + tr.cue + "): GO, hold for " + HOLD_S + " s.");
+    } else if (tr.phase === "hold") {
+      var detected = tr.beyondS >= DETECT_PERSIST_S;
+      var rec = { n: tr.idx + 1, detected: detected,
+        beyondS: tr.beyondS, maxAbsDev: tr.maxAbsDev,
+        holdStartElapsed: tr.holdStartElapsed,
+        holdEndElapsed: (now - S.sessionStart) / 1000 };
+      S.trials[tr.cue === "head" ? "head" : "sh"].push(rec);
+      log("Trial " + (tr.idx + 1) + " (" + tr.cue + "): " +
+        (detected ? "DETECTED" : "not detected") + ", " +
+        fmt(tr.beyondS, 1) + " s beyond target, peak " +
+        fmt(tr.maxAbsDev, 1) + " deg.");
+      tr.phase = "rest"; tr.phaseStart = now; tr.phaseDur = REST_S * 1000;
+      setPrompt("Step " + (tr.cue === "head" ? "3" : "4") + " of 6 - " + tr.cue + " trials",
+        "Rest", "Return to upright and relax until the next trial.");
+    } else if (tr.phase === "rest") {
+      if (tr.idx + 1 >= TRIALS_PER_CUE) {
+        var done = S.trials[tr.cue === "head" ? "head" : "sh"]
+          .filter(function (r) { return r.detected; }).length;
+        S.trialRun = null;
+        log((tr.cue === "head" ? "Head" : "Shoulder") + " trials complete: " +
+          done + " of " + TRIALS_PER_CUE + " holds detected.");
+        if (tr.cue === "head") {
+          setPrompt("Step 3 of 6 - Head trials complete",
+            "Head trials complete: " + done + " of " + TRIALS_PER_CUE + " detected",
+            "Continue to the shoulder trials.");
+          startTrials("shoulder");
+        } else {
+          setPrompt("Step 4 of 6 - Shoulder trials complete",
+            "Shoulder trials complete: " + done + " of " + TRIALS_PER_CUE + " detected",
+            "Continue to the 5 minute work sample.");
+          startWork(now);
+        }
+      } else {
+        tr.idx++; tr.phase = "ready"; tr.phaseStart = now;
+        tr.phaseDur = READY_S * 1000;
+        setPrompt("Step " + (tr.cue === "head" ? "3" : "4") + " of 6 - " + tr.cue + " trials",
+          "Trial " + (tr.idx + 1) + " of " + TRIALS_PER_CUE + " - get ready",
+          "Return to upright. On GO, tilt your " + tr.cue + " and hold.");
+      }
+    }
+  }
+
+  function startWork(now) {
+    setStep("work");
+    S.work = { startAt: now, endsAt: now + WORK_S * 1000, done: false };
+    setPrompt("Step 5 of 6 - Work sample",
+      "Ordinary desk work for 5 minutes",
+      "Type, use the mouse, reach for things, work normally. This is the calm baseline the false-positive check needs.");
+    log("Work sample started: 5 min of ordinary desk work.");
+  }
+
+  function noteLossFrame() {
+    if (S.loss) S.loss.lossObserved = true;
+  }
+
+  function startLoss(now) {
+    setStep("loss");
+    S.loss = { startAt: now, endsAt: now + LOSS_S * 1000, lossObserved: false };
+    setPrompt("Step 6 of 6 - Landmark-loss test",
+      "Cover the lens or step out of frame",
+      "Stay covered for 10 s. The tool checks that tracking pauses while landmarks are gone.");
+    log("Landmark-loss test started: cover the lens or step out of frame for 10 s.");
+  }
+
+  function finishLoss() {
+    var observed = S.loss && S.loss.lossObserved;
+    S.lossResult = observed
+      ? "PASS - landmarks lost, evaluation paused, no detections during the gap."
+      : "FAIL - no landmark loss was observed in the window. The camera was not covered, or landmarks never dropped. Re-run the test.";
+    log("Landmark-loss test: " + S.lossResult);
+    finishSession();
+  }
+
+  function finishSession() {
+    S.sessionActive = false;
+    clearInterval(S.timerId);
+    setStep("results");
+    showCountdown(null);
+    var headDet = S.trials.head.filter(function (r) { return r.detected; }).length;
+    var shDet = S.trials.sh.filter(function (r) { return r.detected; }).length;
+    els.resultsBox.innerHTML =
+      "<b>Session complete.</b> " + S.frames.length + " frames logged.<br>" +
+      "Head trials: " + headDet + " of " + TRIALS_PER_CUE + " holds detected. " +
+      "Shoulder trials: " + shDet + " of " + TRIALS_PER_CUE + " holds detected.<br>" +
+      "Landmark-loss test: " + (S.lossResult || "not run") + "<br>" +
+      "Download the CSV and the manifest below, and send both back for the re-benchmark.";
+    setPrompt("Step 6 of 6 - Done",
+      "Session complete", "Download the CSV and the manifest, then stop the camera.");
+    els.btnCsv.disabled = false;
+    els.btnManifest.disabled = false;
+    els.btnAbort.disabled = true;
+    els.targetBox.style.display = "none";
+    log("Session complete: " + S.frames.length + " frames. Download the CSV and manifest.");
+  }
+
+  function abortSession() {
+    if (!S.sessionActive) return;
+    S.sessionActive = false;
+    clearInterval(S.timerId);
+    S.trialRun = null;
+    showCountdown(null);
+    els.btnAbort.disabled = true;
+    els.btnStart.disabled = false;
+    els.btnCsv.disabled = S.frames.length === 0;
+    setPrompt("Session aborted", "Session aborted",
+      "Partial data is kept. Download the CSV if you want it, or reset and start again.");
+    log("Session aborted with " + S.frames.length + " frames logged.");
+  }
+
+  /* ================= HUD ================= */
+  function hudTick() {
+    els.hudTrack.textContent = S.tracking ? "tracked" : "lost";
+    els.hudFps.innerHTML = S.fps + " <small>fps</small>";
+    if (S.baseline && S.tracking && S.smoothHead !== null) {
+      var dh = circDev(S.smoothHead, S.baseline.head);
+      var ds = circDev(S.smoothSh, S.baseline.sh);
+      els.hudHead.innerHTML = fmt(Math.abs(dh), 1) + " <small>deg</small>";
+      els.hudSh.innerHTML = fmt(Math.abs(ds), 1) + " <small>deg</small>";
+      var tr = S.trialRun;
+      if (tr && tr.phase === "hold") {
+        var target = targetDeg(tr.cue);
+        var dev = Math.abs(tr.cue === "head" ? dh : ds);
+        els.targetBox.style.display = "";
+        els.targetText.textContent = tr.cue + " hold " + (tr.idx + 1) + ": " +
+          fmt(dev, 1) + " deg of " + target + " deg target" +
+          (dev >= target ? " - past target, hold it there" : " - tilt deeper");
+        var bar = els.targetBar;
+        bar.style.width = clamp(dev / target * 100, 0, 100) + "%";
+        bar.className = dev >= target ? "past" : "";
+      } else {
+        els.targetBox.style.display = "none";
+      }
+    } else {
+      els.hudHead.innerHTML = "-- <small>deg</small>";
+      els.hudSh.innerHTML = "-- <small>deg</small>";
+      els.targetBox.style.display = "none";
+    }
+  }
+
+  /* ================= CSV export ================= */
+  function frameToCsv(f) {
+    var vals = [
+      csvCell(f.t), f.elapsed.toFixed(3), csvCell(f.step),
+      f.head === null ? "" : f.head.toFixed(3),
+      f.sh === null ? "" : f.sh.toFixed(3),
+      csvCell(f.fired), f.tracking,
+      f.devH === null ? "" : f.devH.toFixed(3),
+      f.devS === null ? "" : f.devS.toFixed(3),
+      csvCell(f.cue), f.hold_id === "" ? "" : f.hold_id,
+      csvCell(f.phase)
+    ];
+    for (var i = 0; i < LM_COUNT; i++) {
+      var p = (f.lm && f.lm[i]) ? f.lm[i] : null;
+      if (p) {
+        vals.push(p.x.toFixed(4), p.y.toFixed(4),
+          p.visibility === undefined ? "1.000" : Number(p.visibility).toFixed(3));
+      } else {
+        vals.push("", "", "");
+      }
+    }
+    return vals.join(",");
+  }
+
+  function downloadCsv() {
+    if (!S.frames.length) { log("No frames logged yet, nothing to export."); return; }
+    var lines = [];
+    lines.push("PoseGuard re-run capture - session export");
+    lines.push("Exported," + nowISO());
+    lines.push("Engine," + (S.engineKind === "tasks" ? "MediaPipe Tasks Vision Pose Landmarker Lite" : S.engineKind === "legacy" ? "MediaPipe Pose (classic, lite, fallback)" : "none"));
+    lines.push("Protocol,Run 2 re-run capture");
+    lines.push("Baseline head (deg)," + (S.baseline ? fmt(S.baseline.head, 3) : ""));
+    lines.push("Baseline shoulder (deg)," + (S.baseline ? fmt(S.baseline.sh, 3) : ""));
+    lines.push("Threshold head (deg)," + TARGET_HEAD_DEG);
+    lines.push("Threshold shoulder (deg)," + TARGET_SHOULDER_DEG);
+    lines.push("Target head (deg)," + TARGET_HEAD_DEG);
+    lines.push("Target shoulder (deg)," + TARGET_SHOULDER_DEG);
+    lines.push("Hold duration (s)," + HOLD_S);
+    lines.push("False detections (work sample),0");
+    lines.push("Landmark-loss test," + (S.lossResult ? csvCell(S.lossResult) : "not run"));
+    lines.push("");
+    lines.push(FRAME_HEADER);
+    S.frames.forEach(function (f) { lines.push(frameToCsv(f)); });
+    lines.push("");
+    lines.push("Per-trial summary (angles are deviation from baseline, deg)");
+    lines.push("cue,trial,detected,samples,head_mean,head_std,shoulder_mean,shoulder_std");
+    [["head", S.trials.head], ["shoulder", S.trials.sh]].forEach(function (pair) {
+      pair[1].forEach(function (r) {
+        var rows = S.frames.filter(function (f) {
+          return f.cue === pair[0] && f.hold_id === r.n && f.phase === "hold" && f.tracking === 1;
+        });
+        var hds = rows.map(function (f) { return f.devH; }).filter(function (v) { return v !== null; });
+        var sds = rows.map(function (f) { return f.devS; }).filter(function (v) { return v !== null; });
+        lines.push([pair[0], r.n, r.detected ? "yes" : "no", rows.length,
+          fmt(mean(hds), 3), fmt(std(hds), 3), fmt(mean(sds), 3), fmt(std(sds), 3)].join(","));
+      });
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "poseguard-rerun-" + new Date().toISOString().replace(/[:.]/g, "-") + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    log("CSV downloaded: " + S.frames.length + " frames plus per-trial summary.");
+  }
+
+  /* ================= manifest export ================= */
+  function computeGaps() {
+    var gaps = [];
+    var i = 0, n = S.frames.length;
+    while (i < n) {
+      if (S.frames[i].tracking === 1) { i++; continue; }
+      var j = i;
+      while (j + 1 < n && S.frames[j + 1].tracking === 0) j++;
+      var start = S.frames[i].elapsed;
+      var end = (j + 1 < n) ? S.frames[j + 1].elapsed : S.frames[j].elapsed + 0.1;
+      if (end - start >= 1.0) {
+        gaps.push({ start_s: +start.toFixed(1), end_s: +end.toFixed(1),
+          duration_s: +(end - start).toFixed(1), step: S.frames[i].step,
+          phase: S.frames[i].phase, cue: S.frames[i].cue || "",
+          hold_id: S.frames[i].hold_id === "" ? null : S.frames[i].hold_id });
+      }
+      i = j + 1;
+    }
+    return gaps;
+  }
+
+  function downloadManifest() {
+    if (!S.frames.length) { log("No frames logged yet, nothing to export."); return; }
+    var holds = [];
+    [["head", S.trials.head], ["shoulder", S.trials.sh]].forEach(function (pair) {
+      pair[1].forEach(function (r) {
+        var rows = S.frames.filter(function (f) {
+          return f.cue === pair[0] && f.hold_id === r.n && f.phase === "hold";
+        });
+        var tracked = rows.filter(function (f) { return f.tracking === 1; }).length;
+        holds.push({ cue: pair[0], hold: r.n,
+          duration_s: HOLD_S, frames: rows.length,
+          tracked_fraction: rows.length ? +(tracked / rows.length).toFixed(2) : 0,
+          max_abs_dev_deg: +r.maxAbsDev.toFixed(1),
+          target_deg: targetDeg(pair[0]), detected: r.detected });
+      });
+    });
+    var trackedCount = S.frames.filter(function (f) { return f.tracking === 1; }).length;
+    var manifest = {
+      tool: "poseguard-rerun-capture",
+      protocol: "Run 2 re-run capture",
+      exported: nowISO(),
+      engine: S.engineKind === "tasks" ? "MediaPipe Tasks Vision Pose Landmarker Lite"
+        : S.engineKind === "legacy" ? "MediaPipe Pose (classic, lite, fallback)" : "none",
+      baseline_head_deg: S.baseline ? +S.baseline.head.toFixed(3) : null,
+      baseline_shoulder_deg: S.baseline ? +S.baseline.sh.toFixed(3) : null,
+      protocol_settings: {
+        calib_s: CALIB_S, ready_s: READY_S, hold_s: HOLD_S, rest_s: REST_S,
+        work_s: WORK_S, loss_s: LOSS_S, trials_per_cue: TRIALS_PER_CUE,
+        target_head_deg: TARGET_HEAD_DEG, target_shoulder_deg: TARGET_SHOULDER_DEG,
+        detect_persist_s: DETECT_PERSIST_S
+      },
+      frames: S.frames.length,
+      frames_tracked: trackedCount,
+      tracked_fraction: S.frames.length ? +(trackedCount / S.frames.length).toFixed(3) : 0,
+      holds: holds,
+      gaps: computeGaps(),
+      loss_test: S.lossResult || "not run"
+    };
+    var blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "poseguard-rerun-manifest-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    log("Manifest downloaded: " + holds.length + " holds, " + manifest.gaps.length + " tracking-loss gap(s).");
+  }
+
+  function resetSession() {
+    S.frames = []; S.trials = { head: [], sh: [] };
+    S.baseline = null; S.lossResult = null; S.trialRun = null;
+    S.work = null; S.loss = null; S.calib = null;
+    S.sessionActive = false;
+    if (S.timerId) { clearInterval(S.timerId); S.timerId = null; }
+    els.resultsBox.textContent = "No session yet. Run a session to see the per-hold summary here.";
+    els.btnCsv.disabled = true;
+    els.btnManifest.disabled = true;
+    els.btnAbort.disabled = true;
+    els.btnStart.disabled = !S.engine;
+    showCountdown(null);
+    setStep("setup");
+    setPrompt("Step 1 of 6 - Setup", "Set up, then enable the camera",
+      "Load the pose engine, allow camera access, and start the session when ready.");
+    log("Session data reset (baseline cleared).");
+  }
+
+  /* ================= wiring ================= */
+  els.btnCamera.addEventListener("click", startCamera);
+  els.btnStopCamera.addEventListener("click", stopCamera);
+  els.btnEngine.addEventListener("click", function () {
+    els.btnEngine.disabled = true;
+    initEngine().then(function (ok) {
+      els.btnEngine.disabled = false;
+      els.btnEngine.style.display = ok ? "none" : "";
+      els.btnStart.disabled = !ok;
+      if (ok) log("Pose engine loaded. Next: enable the camera, then start the session.");
+    });
+  });
+  els.btnStart.addEventListener("click", startSession);
+  els.btnAbort.addEventListener("click", abortSession);
+  els.btnCsv.addEventListener("click", downloadCsv);
+  els.btnManifest.addEventListener("click", downloadManifest);
+  els.btnReset.addEventListener("click", resetSession);
+
+  renderSteps();
+  setStep("setup");
+  log("Run 2 capture tool ready. Load the pose engine, enable the camera, and start the session.");
+  if (!window.isSecureContext) log("Warning: this page is not in a secure context. Browsers block camera access outside HTTPS or localhost.");
+})();
+</script>
+</body>
+</html>
