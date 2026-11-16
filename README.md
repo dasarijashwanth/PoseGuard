@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 13. The Python pipeline is complete and tested (150/150 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. Day 13 puts the gated models into the API: the shoulder logistic regression on the 11 gated features (F1 0.219, 5/5 trials, 3 false positives) is now the served model, and `POST /predict` scores a trailing history and applies the 5-second persistence gate, verified end to end on a real Run 1 hold. The served model still does not pass the gate, because of the 3 false positives. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. The next step is a camera re-run with longer, deeper head holds, recording raw landmarks (hips and shoulder heights) not just angles, then a retrain on the new data.
+**Status:** Built through Day 14. The Python pipeline is complete and tested (166/166 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. Day 13 puts the gated models into the API: the shoulder logistic regression on the 11 gated features (F1 0.219, 5/5 trials, 3 false positives) is now the served model, and `POST /predict` scores a trailing history and applies the 5-second persistence gate, verified end to end on a real Run 1 hold. The served model still does not pass the gate, because of the 3 false positives. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. Day 14 built the camera re-run capture tool (10 s holds, shoulder 8 deg and head 15 deg targets, all 33 landmarks per frame); the capture itself is the next step, then a re-benchmark on the new data.
 
 ## What this project is
 
@@ -113,6 +113,8 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
 │   │   ├── stats.py              # Wilson intervals, threshold/persistence curves
 │   │   ├── report.py             # Markdown report generator
 │   │   ├── cli.py                # python -m experiments.eval.cli
+│   │   ├── rerun_protocol.py     # Run 2 protocol: timings, targets, timelines
+│   │   ├── rerun.py              # Run 2 CSV validator
 │   │   ├── REPORT.md             # full Run 1 numbers
 │   │   └── WALKTHROUGH.md        # plain-English version
 │   ├── model/                    # scikit-learn classifier + API (Days 5-6)
@@ -124,7 +126,9 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
   │   ├── artifacts_v2/         # Day 13 served models (gated features)
 │   │   ├── Dockerfile
 │   │   └── docker-compose.yml    # API on 8000, MLflow UI on 5000
-│   └── webcam-validation-experiment.html   # data collection page (serve locally, see below)
+│   ├── webcam-validation-experiment.html   # data collection page (serve locally, see below)
+│   ├── rerun-capture.html        # Run 2 data collection page (serve locally, see below)
+│   └── WALKTHROUGH_DAY14.md      # Day 14 walkthrough
 ├── src/                          # React demo shell (Days 1-2)
 │   ├── posture/angles.ts         # angle math and EMA smoothing
 │   └── camera/                   # getUserMedia, worker capture, stats
@@ -215,6 +219,13 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 14 (Nov 16): camera re-run capture tool
+
+- Day 13 closed with the served models still failing the gate because the signal itself is the problem: holds move the shoulder angle only about 2.5 deg vs 4-7 deg of drift, and the Run 1 CSV has no raw landmarks. Day 14 builds the fix: `experiments/rerun-capture.html`, a standalone capture tool that records all 33 pose landmarks per frame, with 10 s holds (was 6 s), 5 s ready/rest (was 3 s), and live depth targets (shoulder 8 deg, head 15 deg) shown while holding. Tracking requires hips 23/24 visible, so the shoulder-vs-hip signal Run 1 could not test is in the data.
+- The tool guides the full session (calibration 5 s, 5 head trials, 5 shoulder trials, 5 min work sample, 10 s landmark-loss test, about 8.6 min), labels every frame with cue, hold id and phase, and downloads a CSV that is a superset of the Run 1 schema (the existing loader reads it unchanged) plus a JSON manifest with per-hold stats and tracking-loss gaps. It runs from localhost via a PowerShell Net.HttpListener block printed on the page; nothing is installed on his laptop.
+- `experiments/eval/rerun_protocol.py` holds the protocol as the single source of truth, and `experiments/eval/rerun.py` validates a captured CSV before the Day 15 re-benchmark uses it (schema errors fail the file; weak holds, short work samples and tracking gaps warn). No captured data was invented; the capture itself is the next step.
+- 166/166 tests passing in one combined run (60 eval + 106 model, including 16 new Day 14 tests). Full numbers in `experiments/WALKTHROUGH_DAY14.md`.
 
 ### Day 13 (Nov 15): serve the gated models in the API
 
