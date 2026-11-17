@@ -148,3 +148,66 @@ Random forest importances on the gated features (new set): {'mean_abs_sn': 0.165
 ## What the gated features mean
 
 The gated features help logistic regression and the MLP on F1, and leave the random forest where it was, but they do not hand any model a real tilt signal. The MLP gain comes with more false positives (1 to 3) and its calm-only accuracy slips a little, so the extra detections are not cleaner signal. Check the trial and false-positive columns before believing any F1 move: the gate, not accuracy, is the honest score. The fix is still the re-run data (longer, deeper holds, more trials, raw landmarks), not a fancier model or a cleaner feature.
+
+## Day 15: head cue rework
+
+Day 13 left the head cue as the worst half of the served model (logistic regression 1/5 trials, 6 false positives, F1 0.078), and Day 4 said the tilts were real but too brief for the 5 s gate. Day 15 separates the three things that claim conflates: the level (thresholds 4-8 deg), the persistence (2/3/5 s), and the speed of the head line (velocity cap none / 5 / 10 / 20 deg/s, where a fast frame breaks a persistence run). Every configuration is scored the same way: trials detected, work false positives, and trial-level F1. Head only; the shoulder cue is untouched.
+
+### Per-hold dwell (Run 1)
+
+How long each deliberate hold actually stayed tilted, and how deep it went. The 5th hold is barely recorded (6 frames), so at most 4/5 trials are measurable in Run 1.
+
+| Trial | Samples | Mean |dev| (deg) | Max |dev| (deg) | Dwell >4 deg (s) | Dwell >5 deg (s) | Dwell >6 deg (s) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 67 | 3.22 | 7.05 | 0.9 | 0.5 | 0.5 |
+| 2 | 66 | 1.84 | 3.25 | 0.0 | 0.0 | 0.0 |
+| 3 | 67 | 4.28 | 5.72 | 2.2 | 1.5 | 0.0 |
+| 4 | 67 | 3.34 | 6.6 | 2.2 | 0.9 | 0.3 |
+| 5 | 6 | 0.58 | 0.89 | 0.0 | 0.0 | 0.0 |
+
+### Rule grid (best 12 of 60 configurations by F1)
+
+| Threshold (deg) | Persistence (s) | Velocity cap (deg/s) | Trials detected | False positives | F1 (trial) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 4 | 2.0 | 10.0 | 2/5 | 3 | 0.400 |
+| 4 | 2.0 | 20.0 | 2/5 | 5 | 0.333 |
+| 4 | 2.0 | 5.0 | 1/5 | 2 | 0.250 |
+| 4 | 2.0 | none | 2/5 | 9 | 0.250 |
+| 4 | 5.0 | none | 0/5 | 0 | 0.000 |
+| 5 | 5.0 | none | 0/5 | 0 | 0.000 |
+| 6 | 5.0 | none | 0/5 | 0 | 0.000 |
+| 7 | 5.0 | none | 0/5 | 0 | 0.000 |
+| 8 | 5.0 | none | 0/5 | 0 | 0.000 |
+| 4 | 3.0 | 5.0 | 0/5 | 0 | 0.000 |
+| 4 | 5.0 | 5.0 | 0/5 | 0 | 0.000 |
+| 5 | 3.0 | 5.0 | 0/5 | 0 | 0.000 |
+
+Best configuration by F1: threshold 4 deg, persistence 2.0 s, velocity cap 10.0 deg/s, 2/5 trials, 3 false positives, F1 0.400.
+
+### Model comparison (same grouped 5-fold CV as Days 8/12)
+
+Old features (6):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.446 | 0.043 | 0.391 | 0.078 | 1/5 | 6 | 172/318 | 0.427 |
+| random_forest | 0.932 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 1/318 | 0.895 |
+| mlp | 0.671 | 0.036 | 0.174 | 0.060 | 1/5 | 4 | 100/318 | 0.685 |
+
+New features (8): velocity (vel_h, mean |speed| of the head line in deg/s) and dwell (dwell_h, longest continuous run above 5 deg in seconds) added:
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.465 | 0.054 | 0.478 | 0.097 | 2/5 | 4 | 167/318 | 0.448 |
+| random_forest | 0.935 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/318 | 0.899 |
+| mlp | 0.642 | 0.062 | 0.348 | 0.105 | 2/5 | 3 | 99/318 | 0.605 |
+
+Logistic regression coefficients on the new features (new set): {'mean_abs_h': -0.528, 'max_abs_h': -0.729, 'mean_h': -1.029, 'std_h': 0.107, 'frac_h_gt5': 1.468, 'jerk_h': -0.147, 'vel_h': 0.059, 'dwell_h': -0.962}.
+
+Random forest importances on the new features (new set): {'mean_abs_h': 0.119, 'max_abs_h': 0.167, 'mean_h': 0.227, 'std_h': 0.13, 'frac_h_gt5': 0.022, 'jerk_h': 0.162, 'vel_h': 0.159, 'dwell_h': 0.014}.
+
+**Verdict:** logistic_regression: F1 0.078 to 0.097, trials 1/5 to 2/5, false positives 6 to 4, work flagged 172 to 167. random_forest: F1 unchanged at 0.0, trials 0/5 to 0/5, false positives 0 to 0. mlp: F1 0.06 to 0.105, trials 1/5 to 2/5, false positives 4 to 3, work flagged 100 to 99. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.427 (logistic_regression, old) to 0.605 (mlp, new).
+
+## What the head rework means
+
+Shortening the gate does not save the head cue, because the holds are shallow as well as brief: the deepest hold peaks at 7.1 deg and the longest run above 4 deg inside any hold is 2.2 s, while ordinary work contains head excursions of 10-18 deg sustained for 2-4 s. The velocity cap helps the false-positive side (it kills the tracker jumps, including a 104 deg spike) but cannot create detections the holds never earned. The new features move the models a little on F1 and not at all on the gate, and the served v2 artifacts are unchanged: there is nothing better to serve. The fix is still the camera re-run with raw landmarks and longer, deeper holds (Day 14 tool), not a shorter gate or a cleaner feature.

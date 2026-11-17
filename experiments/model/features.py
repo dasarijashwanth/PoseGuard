@@ -84,25 +84,43 @@ OLD_SHOULDER_FEATURES = [
     "jerk_h",        # head jumpiness (context)
 ]
 
+# Day 15 adds two head features (velocity and dwell) to the head list.
+# HEAD_FEATURES stays the Day 5/13 list so the served v2 artifacts keep
+# matching; Day 15 evaluates the 8-feature list without retraining
+# the served models.
+DAY15_HEAD_FEATURES = HEAD_FEATURES + ["vel_h", "dwell_h"]
+DWELL_THRESHOLD_DEG = 5.0  # dwell is measured above this head deviation
+
 # Day 11 changed nothing for the head cue, so its old and new lists
 # are the same by construction.
 OLD_FEATURES = {"head": HEAD_FEATURES, "shoulder": OLD_SHOULDER_FEATURES}
 
 
 def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
-                    s_new: np.ndarray | None = None) -> dict:
+                    s_new: np.ndarray | None = None,
+                    times: np.ndarray | None = None) -> dict:
     """Features for one window of deviations.
 
     Frames where the tracker was lost carry NaN deviations; they are
     dropped before any feature is computed (at least 3 finite frames
-    are needed, otherwise the window says nothing). All fourteen
+    are needed, otherwise the window says nothing). All sixteen
     features are always returned, even though each cue's model only
     trains on its own list: the calm-only check in train.py needs
     std_s for the head cue too. `s_new` is the Day 11 gated
     deviation series for the same window (NaN where the jump gate
     rejected a frame); without it the three gated features are 0.0,
     which is what the live API sees, since it has no trailing
-    history to run the gate on.
+    history to run the gate on. `times` is the elapsed seconds per
+    frame (Day 15: velocity and dwell need real time, not a frame
+    count); without it frames are assumed 0.1 s apart.
+
+    Day 15 adds two head features. vel_h is the mean |speed| of the
+    head line in deg/s: a deliberate tilt moves steadily, tracker
+    noise jumps. dwell_h is the longest continuous run above 5 deg
+    inside the window, in seconds: the gate needs sustained
+    presence, not a peak. Both are computed on the valid frames
+    only, so a tracking gap breaks a dwell run instead of bridging
+    it.
     """
     h = np.asarray(h_dev, dtype=float)
     s = np.asarray(s_dev, dtype=float)
@@ -111,6 +129,25 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
     valid = np.isfinite(h) & np.isfinite(s)
     if int(valid.sum()) < 3:
         raise ValueError("too few valid samples in window")
+    t = (np.asarray(times, dtype=float) if times is not None
+         else np.arange(len(h)) * 0.1)
+    if len(t) != len(h) or (len(t) > 1 and np.any(np.diff(t) <= 0)):
+        t = np.arange(len(h)) * 0.1
+    h_filled = pd.Series(h).interpolate(limit_direction="both").to_numpy()
+    vel = np.gradient(h_filled, t)
+    vel_h = float(np.mean(np.abs(vel[valid])))
+    above = valid & (np.abs(h) > DWELL_THRESHOLD_DEG)
+    dwell_h = 0.0
+    run_start = None
+    for i, flag in enumerate(above):
+        if flag:
+            if run_start is None:
+                run_start = i
+        elif run_start is not None:
+            dwell_h = max(dwell_h, float(t[i - 1] - t[run_start]))
+            run_start = None
+    if run_start is not None:
+        dwell_h = max(dwell_h, float(t[-1] - t[run_start]))
     h, s = h[valid], s[valid]
     corr = 0.0
     if np.std(h) > 1e-9 and np.std(s) > 1e-9:
@@ -138,6 +175,8 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
         "std_h": float(np.std(h)),
         "frac_h_gt5": float(np.mean(np.abs(h) > 5)),
         "jerk_h": float(np.mean(np.abs(np.diff(h)))) if len(h) > 1 else 0.0,
+        "vel_h": vel_h,
+        "dwell_h": dwell_h,
         "std_s": float(np.std(s)),
         "range_s": float(np.max(s) - np.min(s)),
         "jerk_s": float(np.mean(np.abs(np.diff(s)))) if len(s) > 1 else 0.0,
@@ -184,7 +223,8 @@ def build_windows(frames: pd.DataFrame, session, cue: str) -> pd.DataFrame:
                          if "s_dev_new" in w.columns else None)
                 feats = window_features(w["h_dev"].to_numpy(),
                                         w["s_dev"].to_numpy(),
-                                        s_new=s_new)
+                                        s_new=s_new,
+                                        times=w["elapsed_s"].to_numpy())
             except ValueError:
                 continue  # too few valid samples: window says nothing
             t_start = float(w["elapsed_s"].iloc[0])
