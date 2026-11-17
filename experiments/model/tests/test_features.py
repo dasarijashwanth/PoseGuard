@@ -131,3 +131,57 @@ def test_build_windows_rejects_unknown_cue(run1_frames):
 def test_window_features_rejects_empty_window():
     with pytest.raises(ValueError, match="empty window"):
         window_features(np.array([]), np.array([]))
+
+
+def test_velocity_measures_a_steady_tilt_rate():
+    # 0 to 9 deg over 0.9 s: 10 deg/s.
+    h = np.linspace(0, 9, 10)
+    f = window_features(h, np.zeros(10))
+    assert f["vel_h"] == pytest.approx(10.0, abs=0.5)
+
+
+def test_velocity_is_zero_on_a_flat_window(flat_window):
+    h, s = flat_window
+    f = window_features(h, s)
+    assert f["vel_h"] == pytest.approx(0.0)
+
+
+def test_velocity_uses_real_time_not_frame_count():
+    # Same per-frame steps, twice the elapsed time: half the deg/s.
+    h = np.linspace(0, 9, 10)
+    t = np.arange(10) * 0.2
+    f = window_features(h, np.zeros(10), times=t)
+    assert f["vel_h"] == pytest.approx(5.0, abs=0.5)
+
+
+def test_dwell_measures_the_longest_run_above_five_degrees():
+    h = np.array([0.0, 0.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0])
+    f = window_features(h, np.zeros(10))
+    assert f["dwell_h"] == pytest.approx(0.5)
+
+
+def test_dwell_is_zero_when_nothing_exceeds_five_degrees():
+    h = np.full(10, 4.0)
+    f = window_features(h, np.zeros(10))
+    assert f["dwell_h"] == pytest.approx(0.0)
+
+
+def test_dwell_breaks_on_a_tracking_gap():
+    h = np.array([6.0, 6.0, 6.0, 6.0, 6.0, np.nan,
+                  6.0, 6.0, 6.0, 6.0])
+    f = window_features(h, np.zeros(10))
+    assert f["dwell_h"] == pytest.approx(0.4)
+
+
+def test_day15_head_list_adds_velocity_and_dwell_only():
+    from experiments.model.features import DAY15_HEAD_FEATURES
+    assert DAY15_HEAD_FEATURES == FEATURES["head"] + ["vel_h", "dwell_h"]
+    assert len(FEATURES["head"]) == 6  # served v2 artifacts still match
+
+
+def test_build_windows_carries_day15_head_features(run1_frames):
+    frames, session = run1_frames
+    w = build_windows(frames, session, "head")
+    for col in ("vel_h", "dwell_h"):
+        assert col in w.columns
+        assert np.isfinite(w[col]).all()
