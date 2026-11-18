@@ -143,11 +143,21 @@ def longest_run(frames: pd.DataFrame, dev_col: str, threshold: float,
     return max((e["duration_s"] for e in events), default=0.0)
 
 
-def _hold_windows(step_start: float, offset: float) -> list[tuple[float, float]]:
-    """The 5 hold windows for a cue step, from protocol timing."""
-    cycle = READY_S + HOLD_S + REST_S
-    return [(step_start + offset + k * cycle + READY_S,
-             step_start + offset + k * cycle + READY_S + HOLD_S)
+def _hold_windows(step_start: float, offset: float,
+                  ready_s: float = READY_S, hold_s: float = HOLD_S,
+                  rest_s: float = REST_S) -> list[tuple[float, float]]:
+    """The 5 hold windows for a cue step, from protocol timing.
+
+    The defaults are the Run 1 timings (3 s ready, 6 s hold, 3 s
+    rest). Pass the Run 2 timings (5 / 10 / 5, see
+    experiments.eval.rerun_protocol) for a re-run capture, where
+    the holds are longer and the trial cycle is 20 s, not 12 s:
+    the Run 1 windows would drift a full trial out of phase by
+    the second hold.
+    """
+    cycle = ready_s + hold_s + rest_s
+    return [(step_start + offset + k * cycle + ready_s,
+             step_start + offset + k * cycle + ready_s + hold_s)
             for k in range(TRIALS_PER_CUE)]
 
 
@@ -163,7 +173,9 @@ def _window_stats(frames: pd.DataFrame, dev_col: str,
 
 
 def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
-                 fallback_offset: float | None = None) -> dict:
+                 fallback_offset: float | None = None,
+                 ready_s: float = READY_S, hold_s: float = HOLD_S,
+                 rest_s: float = REST_S) -> dict:
     """Recover the trial clock offset and per-trial stats for one cue.
 
     Grid-searches the offset (0-12 s in 0.1 s steps) and keeps the one
@@ -171,6 +183,9 @@ def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
     experiment recorded (sample counts, means, stds). Returns the offset,
     the fit error, the per-trial stats, and whether the alignment is
     inferred (no recorded summary to fit against) rather than verified.
+    `ready_s` / `hold_s` / `rest_s` are the protocol timings: the
+    Run 1 defaults, or the Run 2 timings (5 / 10 / 5) for a re-run
+    capture.
     """
     step = CUE_STEP[cue]
     dev_col = "h_dev" if cue == "head" else "s_dev"
@@ -182,7 +197,8 @@ def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
 
     def score(offset: float) -> tuple[float, list[dict]]:
         stats, err = [], 0.0
-        for k, (lo, hi) in enumerate(_hold_windows(t0, offset)):
+        for k, (lo, hi) in enumerate(_hold_windows(
+                t0, offset, ready_s, hold_s, rest_s)):
             s = _window_stats(step_frames, dev_col, lo, hi)
             stats.append(s)
             if k < len(summary):
@@ -210,7 +226,9 @@ def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
                 threshold: float, alignment: dict,
                 persist_s: float = PERSIST_S,
                 dev_col: str | None = None,
-                valid_col: str | None = None) -> dict:
+                valid_col: str | None = None,
+                ready_s: float = READY_S, hold_s: float = HOLD_S,
+                rest_s: float = REST_S) -> dict:
     """Detection verdict for one cue at one threshold.
 
     A trial counts as detected if a sustained firing overlaps its hold
@@ -220,7 +238,9 @@ def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
     without changing the 5 s rule the experiment itself used. `dev_col`
     overrides the deviation column (Day 11: a replacement signal);
     `valid_col` names an optional boolean column that must also hold
-    for a frame to count (Day 11: the jump gate).
+    for a frame to count (Day 11: the jump gate). `ready_s` /
+    `hold_s` / `rest_s` are the protocol timings, Run 1 by default,
+    Run 2 (5 / 10 / 5) for a re-run capture.
     """
     step = CUE_STEP[cue]
     dev_col = dev_col or ("h_dev" if cue == "head" else "s_dev")
@@ -230,7 +250,8 @@ def analyze_cue(frames: pd.DataFrame, session: SessionData, cue: str,
                               persist_s=persist_s, valid_col=valid_col)
     detected = 0
     per_trial = []
-    for k, (lo, hi) in enumerate(_hold_windows(t0, alignment["offset_s"])):
+    for k, (lo, hi) in enumerate(_hold_windows(
+            t0, alignment["offset_s"], ready_s, hold_s, rest_s)):
         hit = any(e["start_s"] < hi and e["end_s"] > lo for e in events)
         detected += int(hit)
         per_trial.append({**alignment["trials"][k], "detected": hit})

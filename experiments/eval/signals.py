@@ -199,7 +199,9 @@ def add_signals(frames: pd.DataFrame, session: SessionData) -> pd.DataFrame:
 
 def evaluate_signal(frames: pd.DataFrame, session: SessionData,
                     alignment: dict, name: str,
-                    thresholds: tuple = CANDIDATE_THRESHOLDS) -> dict:
+                    thresholds: tuple = CANDIDATE_THRESHOLDS,
+                    ready_s: float = 3.0, hold_s: float = 6.0,
+                    rest_s: float = 3.0) -> dict:
     """Day 3-4 protocol for one candidate signal.
 
     Threshold sweep at the 5 s persistence rule, then a persistence
@@ -207,7 +209,9 @@ def evaluate_signal(frames: pd.DataFrame, session: SessionData,
     detected, fewest false positives. `alignment` is the shoulder
     trial alignment (same protocol timing for every candidate).
     Returns the per-threshold rows, the persistence rows, and the
-    best row by (detected, -false_positives).
+    best row by (detected, -false_positives). The timing args are
+    the protocol timings, Run 1 by default, Run 2 (5 / 10 / 5) for
+    a re-run capture.
     """
     if name not in CANDIDATES:
         raise ValueError(f"unknown candidate {name!r}, "
@@ -216,7 +220,8 @@ def evaluate_signal(frames: pd.DataFrame, session: SessionData,
     rows: list[dict] = []
     for threshold in thresholds:
         a = analyze_cue(frames, session, "shoulder", threshold, alignment,
-                        dev_col=dev_col, valid_col=valid_col)
+                        dev_col=dev_col, valid_col=valid_col,
+                        ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
         fp = false_positives(frames, "shoulder", threshold,
                              dev_col=dev_col, valid_col=valid_col)
         rows.append({"threshold": threshold,
@@ -229,7 +234,8 @@ def evaluate_signal(frames: pd.DataFrame, session: SessionData,
     for persist_s in PERSIST_GRID_S:
         a = analyze_cue(frames, session, "shoulder", best["threshold"],
                         alignment, persist_s=persist_s,
-                        dev_col=dev_col, valid_col=valid_col)
+                        dev_col=dev_col, valid_col=valid_col,
+                        ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
         persist.append({"persist_s": persist_s,
                         "threshold": best["threshold"],
                         "detected": a["detected"],
@@ -239,23 +245,33 @@ def evaluate_signal(frames: pd.DataFrame, session: SessionData,
             "persistence_curve": persist, "best": best}
 
 
-def evaluate_all(frames: pd.DataFrame, session: SessionData) -> dict:
+def evaluate_all(frames: pd.DataFrame, session: SessionData,
+                 ready_s: float = 3.0, hold_s: float = 6.0,
+                 rest_s: float = 3.0) -> dict:
     """All three candidates plus the old level, same protocol.
 
     The old level is the Day 3-4 rule baseline for reference. The
     shoulder alignment is inferred from the head alignment (Run 1
     recorded no shoulder trial summary), exactly as Days 3-4 did.
+    The timing args are the protocol timings, Run 1 by default,
+    Run 2 (5 / 10 / 5) for a re-run capture. Run 2 records a
+    shoulder trial summary, so its shoulder alignment is verified,
+    not inferred.
     """
-    head_align = align_trials(frames, session, "head")
+    head_align = align_trials(frames, session, "head",
+                              ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
     shoulder_align = align_trials(frames, session, "shoulder",
-                                  fallback_offset=head_align["offset_s"])
+                                  fallback_offset=head_align["offset_s"],
+                                  ready_s=ready_s, hold_s=hold_s,
+                                  rest_s=rest_s)
     out = {"alignment_offset_s": shoulder_align["offset_s"],
            "alignment_verified": shoulder_align["verified"],
            "candidates": {}}
     old_rows: list[dict] = []
     for threshold in CANDIDATE_THRESHOLDS:
         a = analyze_cue(frames, session, "shoulder", threshold,
-                        shoulder_align)
+                        shoulder_align,
+                        ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
         fp = false_positives(frames, "shoulder", threshold)
         old_rows.append({"threshold": threshold,
                          "detected": a["detected"],
@@ -269,7 +285,8 @@ def evaluate_all(frames: pd.DataFrame, session: SessionData) -> dict:
                                                    -r["false_positives"]))}
     for name in CANDIDATES:
         out["candidates"][name] = evaluate_signal(
-            frames, session, shoulder_align, name)
+            frames, session, shoulder_align, name,
+            ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
     return out
 
 

@@ -115,17 +115,22 @@ def trial_f1(detected: int, false_positives_count: int) -> dict:
 
 def hold_dwells(frames: pd.DataFrame, session: SessionData,
                 alignment: dict,
-                thresholds: tuple = HEAD_THRESHOLDS) -> list[dict]:
+                thresholds: tuple = HEAD_THRESHOLDS,
+                ready_s: float = 3.0, hold_s: float = 6.0,
+                rest_s: float = 3.0) -> list[dict]:
     """Per-hold dwell above each threshold, in seconds.
 
     One row per trial, with the sample count in the hold window so a
     barely recorded hold (Run 1 trial 5: 6 samples) is visible as
-    such instead of looking like a missed tilt.
+    such instead of looking like a missed tilt. The timing args are
+    the protocol timings, Run 1 by default, Run 2 (5 / 10 / 5) for
+    a re-run capture.
     """
     step_frames = frames[frames["step"] == "head"].sort_values("elapsed_s")
     t0 = float(step_frames["elapsed_s"].iloc[0])
     rows: list[dict] = []
-    for k, (lo, hi) in enumerate(_hold_windows(t0, alignment["offset_s"]), 1):
+    for k, (lo, hi) in enumerate(_hold_windows(
+            t0, alignment["offset_s"], ready_s, hold_s, rest_s), 1):
         w = step_frames[(step_frames["elapsed_s"] >= lo)
                         & (step_frames["elapsed_s"] < hi)]
         row = {"trial": k, "samples": int(len(w)),
@@ -142,7 +147,9 @@ def hold_dwells(frames: pd.DataFrame, session: SessionData,
 def evaluate_head_gate(frames: pd.DataFrame, session: SessionData,
                        thresholds: tuple = HEAD_THRESHOLDS,
                        persists: tuple = PERSIST_GRID_S,
-                       vel_caps: tuple = VEL_CAPS_DEG_S) -> dict:
+                       vel_caps: tuple = VEL_CAPS_DEG_S,
+                       ready_s: float = 3.0, hold_s: float = 6.0,
+                       rest_s: float = 3.0) -> dict:
     """Threshold x persistence x velocity-cap grid for the head cue.
 
     Every configuration is scored the same way: trials detected out
@@ -152,10 +159,13 @@ def evaluate_head_gate(frames: pd.DataFrame, session: SessionData,
     breaks a persistence run. `best` is the highest F1, breaking
     ties toward more trials detected, then fewer false positives,
     then the longest persistence (the gate the API actually runs).
-    The shoulder cue is untouched: this grid is head only.
+    The shoulder cue is untouched: this grid is head only. The
+    timing args are the protocol timings, Run 1 by default, Run 2
+    (5 / 10 / 5) for a re-run capture.
     """
     frames = add_head_features(frames, vel_caps)
-    alignment = align_trials(frames, session, "head")
+    alignment = align_trials(frames, session, "head",
+                             ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
     rows: list[dict] = []
     for cap in vel_caps:
         valid_col = None if cap is None else f"h_slow_{int(cap)}"
@@ -163,7 +173,9 @@ def evaluate_head_gate(frames: pd.DataFrame, session: SessionData,
             for persist in persists:
                 a = analyze_cue(frames, session, "head", threshold,
                                 alignment, persist_s=persist,
-                                dev_col="h_dev", valid_col=valid_col)
+                                dev_col="h_dev", valid_col=valid_col,
+                                ready_s=ready_s, hold_s=hold_s,
+                                rest_s=rest_s)
                 work = frames[frames["step"] == "work"].sort_values(
                     "elapsed_s")
                 fp_events = sustained_events(work, "h_dev", threshold,
@@ -182,5 +194,7 @@ def evaluate_head_gate(frames: pd.DataFrame, session: SessionData,
                                     r["persist_s"]))
     return {"alignment_offset_s": alignment["offset_s"],
             "alignment_verified": alignment["verified"],
-            "hold_dwells": hold_dwells(frames, session, alignment),
+            "hold_dwells": hold_dwells(frames, session, alignment,
+                                       ready_s=ready_s, hold_s=hold_s,
+                                       rest_s=rest_s),
             "rows": rows, "best": best}
