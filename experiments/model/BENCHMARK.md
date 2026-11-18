@@ -211,3 +211,97 @@ Random forest importances on the new features (new set): {'mean_abs_h': 0.119, '
 ## What the head rework means
 
 Shortening the gate does not save the head cue, because the holds are shallow as well as brief: the deepest hold peaks at 7.1 deg and the longest run above 4 deg inside any hold is 2.2 s, while ordinary work contains head excursions of 10-18 deg sustained for 2-4 s. The velocity cap helps the false-positive side (it kills the tracker jumps, including a 104 deg spike) but cannot create detections the holds never earned. The new features move the models a little on F1 and not at all on the gate, and the served v2 artifacts are unchanged: there is nothing better to serve. The fix is still the camera re-run with raw landmarks and longer, deeper holds (Day 14 tool), not a shorter gate or a cleaner feature.
+
+## Day 16: Run 2 re-benchmark harness
+
+Source: synthetic fixture (experiments.eval.tests.test_rerun builder), not a real capture. The Day 14 capture tool has not produced a real session yet, so Day 16 is the harness itself: it validates a Run 2 capture, then re-runs the Day 15 head evaluation and the Day 11/12 shoulder evaluation on the new data, with the Run 2 protocol timings (5 s ready, 10 s hold, 5 s rest) instead of the Run 1 timings the earlier days hardcoded. When the real capture arrives, the same command refreshes this section with its numbers.
+
+### Validation
+
+5150 frames, 98.1% tracked, work sample 299.9 s. 10 holds checked, 10 reached their depth target.
+
+No validator warnings.
+
+### Head rule grid (best 12 of 60 configurations by F1)
+
+| Threshold (deg) | Persistence (s) | Velocity cap (deg/s) | Trials detected | False positives | F1 (trial) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 4 | 2.0 | none | 5/5 | 0 | 1.000 |
+| 4 | 3.0 | none | 5/5 | 0 | 1.000 |
+| 4 | 5.0 | none | 5/5 | 0 | 1.000 |
+| 5 | 2.0 | none | 5/5 | 0 | 1.000 |
+| 5 | 3.0 | none | 5/5 | 0 | 1.000 |
+| 5 | 5.0 | none | 5/5 | 0 | 1.000 |
+| 6 | 2.0 | none | 5/5 | 0 | 1.000 |
+| 6 | 3.0 | none | 5/5 | 0 | 1.000 |
+| 6 | 5.0 | none | 5/5 | 0 | 1.000 |
+| 7 | 2.0 | none | 5/5 | 0 | 1.000 |
+| 7 | 3.0 | none | 5/5 | 0 | 1.000 |
+| 7 | 5.0 | none | 5/5 | 0 | 1.000 |
+
+Best configuration by F1: threshold 4 deg, persistence 5.0 s, velocity cap none, 5/5 trials, 0 false positives, F1 1.000.
+
+Head rule baseline on this file (session threshold 5/5 trials, 0 false positives at the recorded threshold, 5 s persistence).
+
+### Head model comparison (same grouped 5-fold CV as Days 8/12)
+
+Old features (6):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+| random_forest | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+| mlp | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+
+New features (8):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+| random_forest | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+| mlp | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+
+**Head verdict:** logistic_regression: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. random_forest: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. mlp: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. Passes the gate: logistic_regression, random_forest, mlp, logistic_regression, random_forest, mlp. Best-F1 model calm-only accuracy 1.0 (logistic_regression, old) to 1.0 (logistic_regression, new).
+
+### Shoulder signal (Day 11 re-run)
+
+Alignment verified: True. Old level best: threshold 1 deg, 5/5 trials, 0 false positives. Gated signal best: threshold 1 deg, 5/5 trials, 0 false positives.
+
+| Threshold (deg) | Trials detected | False positives | Longest run (s) |
+| ---: | ---: | ---: | ---: |
+| 1 | 5/5 | 0 | 10.3 |
+| 2 | 5/5 | 0 | 10.1 |
+| 3 | 5/5 | 0 | 10.1 |
+| 4 | 5/5 | 0 | 9.9 |
+| 6 | 5/5 | 0 | 9.7 |
+| 8 | 5/5 | 0 | 9.5 |
+
+Gated persistence curve at the best threshold (1 deg): 0.5 s: 5/5, 2.0 s: 5/5, 5.0 s: 5/5
+
+Shoulder rule baseline on this file (old level at the recorded threshold, 5 s persistence): 5/5 trials, 0 false positives.
+
+### Shoulder model comparison (same grouped 5-fold CV as Days 8/12)
+
+Old features (8):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.140 | 0.097 | 0.800 | 0.173 | 4/5 | 1 | 300/300 | 0.140 |
+| random_forest | 0.925 | 1.000 | 0.333 | 0.500 | 0/5 | 0 | 0/300 | 0.925 |
+| mlp | 0.887 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/300 | 0.887 |
+
+New features (11):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.978 | 1.000 | 0.800 | 0.889 | 4/5 | 0 | 0/300 | 0.978 |
+| random_forest | 1.000 | 1.000 | 1.000 | 1.000 | 5/5 | 0 | 0/300 | 1.000 |
+| mlp | 0.955 | 1.000 | 0.600 | 0.750 | 3/5 | 0 | 0/300 | 0.955 |
+
+**Shoulder verdict:** logistic_regression: F1 0.173 to 0.889, false positives 1 to 0, work flagged 300 to 0. random_forest: F1 0.5 to 1.0, false positives 0 to 0, work flagged 0 to 0. mlp: F1 0.0 to 0.75, false positives 0 to 0, work flagged 0 to 0. Passes the gate: logistic_regression, random_forest. Best-F1 model calm-only accuracy 0.925 (random_forest, old) to 1.0 (random_forest, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison.
+
+**Verdict:** Head passes the gate: rule grid best (4 deg, 5.0 s, velocity cap none), logistic_regression (old features), random_forest (old features), mlp (old features), logistic_regression (new features), random_forest (new features), mlp (new features). Shoulder passes the gate: gated signal best (1 deg), logistic_regression (new features), random_forest (new features).
+
+## What the Day 16 harness means
+
+The harness runs end to end on a Run 2 file: validation, the Day 15 head grid and model comparison, and the Day 11/12 shoulder signal and model comparison, all with the Run 2 timings and rule baselines counted on the new data. Nothing here is a claim about the real capture, which has not arrived: on the synthetic fixture the holds are clean steps to target depth with flat work, so the gate passes there by construction. The real question, whether longer, deeper holds with raw landmarks separate from ordinary work, is still open until the capture run lands and this same command runs on it.

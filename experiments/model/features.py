@@ -186,7 +186,9 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
     }
 
 
-def build_windows(frames: pd.DataFrame, session, cue: str) -> pd.DataFrame:
+def build_windows(frames: pd.DataFrame, session, cue: str,
+                  ready_s: float = 3.0, hold_s: float = 6.0,
+                  rest_s: float = 3.0) -> pd.DataFrame:
     """1-second labelled windows for one cue from enriched frames.
 
     `frames` must already carry h_dev / s_dev (see
@@ -196,15 +198,21 @@ def build_windows(frames: pd.DataFrame, session, cue: str) -> pd.DataFrame:
     time-block 1-5) used for grouped cross-validation so no trial's
     windows ever straddle train and test. Windows with fewer than
     MIN_TRACKED tracked frames are skipped (the tracker was mostly
-    lost there, so the window says nothing about posture).
+    lost there, so the window says nothing about posture). The
+    timing args are the protocol timings, Run 1 by default, Run 2
+    (5 / 10 / 5) for a re-run capture: the hold windows and the
+    trial cycle (ready + hold + rest) both change, so a Run 1
+    cycle would label the wrong frames tilted.
     """
     if cue not in FEATURES:
         raise ValueError(f"unknown cue {cue!r}, expected 'head' or 'shoulder'")
     step = cue  # trial step name matches the cue name
-    alignment = align_trials(frames, session, cue)
+    alignment = align_trials(frames, session, cue,
+                             ready_s=ready_s, hold_s=hold_s, rest_s=rest_s)
     step_frames = frames[frames["step"] == step].sort_values("elapsed_s")
     t0 = float(step_frames["elapsed_s"].iloc[0])
-    holds = _hold_windows(t0, alignment["offset_s"])
+    holds = _hold_windows(t0, alignment["offset_s"],
+                          ready_s, hold_s, rest_s)
 
     rows: list[dict] = []
     work_frames = frames[frames["step"] == "work"].sort_values("elapsed_s")
@@ -232,10 +240,11 @@ def build_windows(frames: pd.DataFrame, session, cue: str) -> pd.DataFrame:
                 t_end = float(w["elapsed_s"].iloc[-1])
                 label = int(any(t_start >= lo and t_end <= hi
                                 for lo, hi in holds))
-                # which 12 s trial cycle the window belongs to (1-5);
+                # which trial cycle the window belongs to (1-5);
                 # used as the CV group so a trial's windows never
-                # straddle train and test.
-                cycle = 3.0 + 6.0 + 3.0
+                # straddle train and test. The cycle is the full
+                # ready + hold + rest length of the protocol.
+                cycle = ready_s + hold_s + rest_s
                 group = int((t_start - t0 - alignment["offset_s"]) // cycle) + 1
                 group = max(1, min(5, group))
             else:
