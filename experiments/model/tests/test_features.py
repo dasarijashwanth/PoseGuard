@@ -102,8 +102,10 @@ def test_slope_measures_drift():
 def test_shoulder_features_never_include_shoulder_level():
     # Day 4 verdict: the raw shoulder angle is the wrong signal.
     # The feature list must not let the model see it.
+    from experiments.model.features import DAY17_SHOULDER_FEATURES
     level_names = {"mean_s", "max_abs_s", "mean_abs_s", "frac_s_gt6"}
     assert not (set(FEATURES["shoulder"]) & level_names)
+    assert not (set(DAY17_SHOULDER_FEATURES) & level_names)
     assert "mean_abs_h" in FEATURES["shoulder"]  # head is context, allowed
     assert set(FEATURES["head"]) != set(FEATURES["shoulder"])
 
@@ -183,5 +185,59 @@ def test_build_windows_carries_day15_head_features(run1_frames):
     frames, session = run1_frames
     w = build_windows(frames, session, "head")
     for col in ("vel_h", "dwell_h"):
+        assert col in w.columns
+        assert np.isfinite(w[col]).all()
+
+def test_velocity_s_measures_a_steady_tilt_rate():
+    # 0 to 9 deg over 0.9 s: 10 deg/s, on the shoulder line.
+    s = np.linspace(0, 9, 10)
+    f = window_features(np.zeros(10), s)
+    assert f["vel_s"] == pytest.approx(10.0, abs=0.5)
+
+
+def test_velocity_s_is_zero_on_a_flat_window(flat_window):
+    h, s = flat_window
+    f = window_features(h, s)
+    assert f["vel_s"] == pytest.approx(0.0)
+
+
+def test_velocity_s_uses_real_time_not_frame_count():
+    # Same per-frame steps, twice the elapsed time: half the deg/s.
+    s = np.linspace(0, 9, 10)
+    t = np.arange(10) * 0.2
+    f = window_features(np.zeros(10), s, times=t)
+    assert f["vel_s"] == pytest.approx(5.0, abs=0.5)
+
+
+def test_dwell_s_measures_the_longest_run_above_two_degrees():
+    s = np.array([0.0, 0.0, 0.0, 0.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0])
+    f = window_features(np.zeros(10), s)
+    assert f["dwell_s"] == pytest.approx(0.5)
+
+
+def test_dwell_s_is_zero_when_nothing_exceeds_two_degrees():
+    s = np.full(10, 1.5)
+    f = window_features(np.zeros(10), s)
+    assert f["dwell_s"] == pytest.approx(0.0)
+
+
+def test_dwell_s_breaks_on_a_tracking_gap():
+    s = np.array([3.0, 3.0, 3.0, 3.0, 3.0, np.nan,
+                  3.0, 3.0, 3.0, 3.0])
+    f = window_features(np.zeros(10), s)
+    assert f["dwell_s"] == pytest.approx(0.4)
+
+
+def test_day17_shoulder_list_adds_velocity_and_dwell_only():
+    from experiments.model.features import DAY17_SHOULDER_FEATURES
+    assert DAY17_SHOULDER_FEATURES == FEATURES["shoulder"] + [
+        "vel_s", "dwell_s"]
+    assert len(FEATURES["shoulder"]) == 11  # served v2 artifacts match
+
+
+def test_build_windows_carries_day17_shoulder_features(run1_frames):
+    frames, session = run1_frames
+    w = build_windows(frames, session, "shoulder")
+    for col in ("vel_s", "dwell_s"):
         assert col in w.columns
         assert np.isfinite(w[col]).all()
