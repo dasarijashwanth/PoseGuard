@@ -91,6 +91,18 @@ OLD_SHOULDER_FEATURES = [
 DAY15_HEAD_FEATURES = HEAD_FEATURES + ["vel_h", "dwell_h"]
 DWELL_THRESHOLD_DEG = 5.0  # dwell is measured above this head deviation
 
+# Day 17 adds the same two features for the shoulder cue, mirroring
+# Day 15. vel_s is the mean |speed| of the shoulder line in deg/s
+# and dwell_s is the longest continuous run above 2 deg in seconds.
+# The dwell threshold is 2 deg, not 5: the shoulder holds live
+# around 2-3 deg, so a 5 deg threshold would be zero on every
+# window, hold and work alike. Both are dynamics, not level stats:
+# neither is a mean or max of the shoulder deviation, so the Day 5
+# ban on shoulder level features still holds (see
+# test_shoulder_features_never_include_shoulder_level).
+DAY17_SHOULDER_FEATURES = SHOULDER_FEATURES + ["vel_s", "dwell_s"]
+DWELL_THRESHOLD_SHOULDER_DEG = 2.0
+
 # Day 11 changed nothing for the head cue, so its old and new lists
 # are the same by construction.
 OLD_FEATURES = {"head": HEAD_FEATURES, "shoulder": OLD_SHOULDER_FEATURES}
@@ -103,7 +115,7 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
 
     Frames where the tracker was lost carry NaN deviations; they are
     dropped before any feature is computed (at least 3 finite frames
-    are needed, otherwise the window says nothing). All sixteen
+    are needed, otherwise the window says nothing). All eighteen
     features are always returned, even though each cue's model only
     trains on its own list: the calm-only check in train.py needs
     std_s for the head cue too. `s_new` is the Day 11 gated
@@ -121,6 +133,14 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
     presence, not a peak. Both are computed on the valid frames
     only, so a tracking gap breaks a dwell run instead of bridging
     it.
+
+    Day 17 adds the same two features for the shoulder cue. vel_s
+    is the mean |speed| of the shoulder line in deg/s and dwell_s
+    is the longest continuous run above 2 deg in seconds. The
+    shoulder dwell threshold is 2 deg, not 5: the holds live around
+    2-3 deg, so a 5 deg threshold would be zero on every window.
+    Both are dynamics, not level stats, so the shoulder classifier
+    still never sees the shoulder level itself.
     """
     h = np.asarray(h_dev, dtype=float)
     s = np.asarray(s_dev, dtype=float)
@@ -136,18 +156,33 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
     h_filled = pd.Series(h).interpolate(limit_direction="both").to_numpy()
     vel = np.gradient(h_filled, t)
     vel_h = float(np.mean(np.abs(vel[valid])))
-    above = valid & (np.abs(h) > DWELL_THRESHOLD_DEG)
-    dwell_h = 0.0
-    run_start = None
-    for i, flag in enumerate(above):
-        if flag:
-            if run_start is None:
-                run_start = i
-        elif run_start is not None:
-            dwell_h = max(dwell_h, float(t[i - 1] - t[run_start]))
-            run_start = None
-    if run_start is not None:
-        dwell_h = max(dwell_h, float(t[-1] - t[run_start]))
+    s_filled = pd.Series(s).interpolate(limit_direction="both").to_numpy()
+    s_vel = np.gradient(s_filled, t)
+    vel_s = float(np.mean(np.abs(s_vel[valid])))
+
+    def _dwell(series: np.ndarray, threshold: float) -> float:
+        """Longest continuous run above `threshold`, in seconds.
+
+        Computed on the valid frames only, so a tracking gap breaks
+        a run instead of bridging it. Duration is the span from the
+        first to the last frame of the run.
+        """
+        above = valid & (np.abs(series) > threshold)
+        longest = 0.0
+        run_start = None
+        for i, flag in enumerate(above):
+            if flag:
+                if run_start is None:
+                    run_start = i
+            elif run_start is not None:
+                longest = max(longest, float(t[i - 1] - t[run_start]))
+                run_start = None
+        if run_start is not None:
+            longest = max(longest, float(t[-1] - t[run_start]))
+        return longest
+
+    dwell_h = _dwell(h, DWELL_THRESHOLD_DEG)
+    dwell_s = _dwell(s, DWELL_THRESHOLD_SHOULDER_DEG)
     h, s = h[valid], s[valid]
     corr = 0.0
     if np.std(h) > 1e-9 and np.std(s) > 1e-9:
@@ -177,6 +212,8 @@ def window_features(h_dev: np.ndarray, s_dev: np.ndarray,
         "jerk_h": float(np.mean(np.abs(np.diff(h)))) if len(h) > 1 else 0.0,
         "vel_h": vel_h,
         "dwell_h": dwell_h,
+        "vel_s": vel_s,
+        "dwell_s": dwell_s,
         "std_s": float(np.std(s)),
         "range_s": float(np.max(s) - np.min(s)),
         "jerk_s": float(np.mean(np.abs(np.diff(s)))) if len(s) > 1 else 0.0,
