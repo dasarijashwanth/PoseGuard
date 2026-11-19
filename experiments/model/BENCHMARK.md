@@ -305,3 +305,68 @@ New features (11):
 ## What the Day 16 harness means
 
 The harness runs end to end on a Run 2 file: validation, the Day 15 head grid and model comparison, and the Day 11/12 shoulder signal and model comparison, all with the Run 2 timings and rule baselines counted on the new data. Nothing here is a claim about the real capture, which has not arrived: on the synthetic fixture the holds are clean steps to target depth with flat work, so the gate passes there by construction. The real question, whether longer, deeper holds with raw landmarks separate from ordinary work, is still open until the capture run lands and this same command runs on it.
+
+## Day 17: shoulder cue rework
+
+Day 11 left the shoulder cue with the tracker-noise half fixed (the jump-gated signal cuts false positives from 7 to 1 at the 6 deg operating threshold) but the level half untouched: the gated signal still detects 0/5 trials there, because a deliberate hold moves the shoulder line only about 2.5 deg while everyday leaning drifts 4-7 deg. Day 17 gives the shoulder cue the Day 15 treatment: it separates the level (thresholds 1-8 deg), the persistence (2/3/5 s), and the speed of the shoulder line (velocity cap none / 5 / 10 / 20 deg/s, where a fast frame breaks a persistence run). Every configuration is scored the same way: trials detected, work false positives, and trial-level F1. Shoulder only; the head cue is untouched. The shoulder trial alignment is inferred from the head alignment (Run 1 recorded no shoulder trial summary), so the grid numbers carry that caveat.
+
+### Per-hold dwell (Run 1)
+
+How long each deliberate hold actually stayed tilted, and how deep it went. Dwell is measured above 2 deg: the holds live around 2-3 deg, so a 5 deg threshold would be zero on every window.
+
+| Trial | Samples | Mean |dev| (deg) | Max |dev| (deg) | Dwell >1 deg (s) | Dwell >2 deg (s) | Dwell >3 deg (s) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 67 | 2.82 | 4.33 | 5.9 | 5.9 | 1.4 |
+| 2 | 66 | 2.29 | 2.81 | 5.8 | 2.3 | 0.0 |
+| 3 | 67 | 7.05 | 58.23 | 5.8 | 5.8 | 1.5 |
+| 4 | 67 | 2.67 | 3.89 | 5.9 | 3.0 | 2.3 |
+| 5 | 8 | 0.98 | 1.87 | 0.2 | 0.0 | 0.0 |
+
+### Rule grid (best 12 of 72 configurations by F1)
+
+| Threshold (deg) | Persistence (s) | Velocity cap (deg/s) | Trials detected | False positives | F1 (trial) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 5.0 | 5.0 | 4/5 | 8 | 0.471 |
+| 1 | 5.0 | 10.0 | 4/5 | 8 | 0.471 |
+| 1 | 5.0 | 20.0 | 4/5 | 8 | 0.471 |
+| 1 | 2.0 | 5.0 | 5/5 | 17 | 0.370 |
+| 1 | 3.0 | 5.0 | 4/5 | 13 | 0.364 |
+| 1 | 2.0 | 10.0 | 5/5 | 19 | 0.345 |
+| 1 | 3.0 | 10.0 | 4/5 | 15 | 0.333 |
+| 1 | 3.0 | 20.0 | 4/5 | 15 | 0.333 |
+| 1 | 2.0 | 20.0 | 5/5 | 20 | 0.333 |
+| 2 | 2.0 | 5.0 | 4/5 | 17 | 0.308 |
+| 2 | 2.0 | 10.0 | 4/5 | 18 | 0.296 |
+| 2 | 3.0 | 5.0 | 3/5 | 13 | 0.286 |
+
+Best configuration by F1: threshold 1 deg, persistence 5.0 s, velocity cap 5.0 deg/s, 4/5 trials, 8 false positives, F1 0.471.
+
+### Model comparison (same grouped 5-fold CV as Days 8/12/15)
+
+Old features (11):
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.610 | 0.129 | 0.724 | 0.219 | 5/5 | 3 | 109/318 | 0.585 |
+| random_forest | 0.919 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/318 | 0.890 |
+| mlp | 0.696 | 0.133 | 0.552 | 0.215 | 4/5 | 3 | 82/318 | 0.638 |
+
+New features (13): velocity (vel_s, mean |speed| of the shoulder line in deg/s) and dwell (dwell_s, longest continuous run above 2 deg in seconds) added:
+
+| Model | Accuracy | Precision (tilted) | Recall (tilted) | F1 (tilted) | Trials | False positives | Work windows flagged | Calm-only accuracy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| logistic_regression | 0.649 | 0.104 | 0.483 | 0.172 | 3/5 | 3 | 89/318 | 0.618 |
+| random_forest | 0.919 | 0.000 | 0.000 | 0.000 | 0/5 | 0 | 0/318 | 0.890 |
+| mlp | 0.574 | 0.101 | 0.586 | 0.172 | 3/5 | 4 | 123/318 | 0.524 |
+
+Logistic regression coefficients on the new features (new set): {'std_s': -1.588, 'range_s': -0.055, 'jerk_s': 1.231, 'slope_s': 0.415, 'corr_h_s': 0.299, 'std_h': 0.542, 'mean_abs_h': -1.074, 'jerk_h': -0.102, 'mean_abs_sn': -1.197, 'max_abs_sn': -1.194, 'std_sn': 0.457, 'vel_s': -0.475, 'dwell_s': -0.328}.
+
+Random forest importances on the new features (new set): {'std_s': 0.057, 'range_s': 0.068, 'jerk_s': 0.069, 'slope_s': 0.043, 'corr_h_s': 0.055, 'std_h': 0.047, 'mean_abs_h': 0.064, 'jerk_h': 0.095, 'mean_abs_sn': 0.161, 'max_abs_sn': 0.131, 'std_sn': 0.085, 'vel_s': 0.067, 'dwell_s': 0.059}.
+
+**Verdict:** logistic_regression: F1 0.219 down to 0.172, trials 5/5 to 3/5, false positives 3 to 3. random_forest: F1 unchanged at 0.0, trials 0/5 to 0/5, false positives 0 to 0. mlp: F1 0.215 down to 0.172, trials 4/5 to 3/5, false positives 3 to 4. Nothing passes the gate (4/5 trials, 0 false positives) on either feature set. Best-F1 model calm-only accuracy 0.585 (logistic_regression, old) to 0.618 (logistic_regression, new).
+
+## What the shoulder rework means
+
+The velocity cap does real work on the false-positive side, more than it did for the head cue: at 1 deg / 5 s it cuts false positives from 19 (no cap) to 8 (any cap), because it kills the tracker jumps that start most work excursions. But 8 is still 8, and the grid's detection half is bought at the lowest threshold: 16 configurations detect 4/5 or 5/5 trials, all at 1-2 deg, and the cheapest of them still carries 8 false positives. At the 6 deg operating threshold the grid reproduces Day 3/4 exactly, 0/5 trials with 7 false positives. Two of the four measurable holds dwell above 2 deg for nearly the whole 6 s (trials 1 and 3), so the holds are not too brief at the low threshold; they are too small to stand out from work, where the shoulder sits 4-7 deg off baseline for seconds at a time. Trial 5 is barely recorded (8 samples), so at most 4/5 trials are measurable in Run 1 at all, and the best grid configuration detects exactly those four. Trial 3 carries a 58 deg tracker spike inside the hold itself, which is why the velocity cap matters even inside trials.
+
+The new features make the models worse, not better. Logistic regression drops from 5/5 trials to 3/5 and F1 0.219 to 0.172, and the MLP drops from 4/5 to 3/5 with F1 0.215 to 0.172, 4 false positives, 123 of 318 work windows flagged, and calm-only accuracy 0.638 to 0.524. The coefficients contradict the story the features were built to tell: vel_s is -0.475 and dwell_s is -0.328, so the model punishes the very speed and persistence it was meant to reward, and the gated coefficients stay negative (mean_abs_sn -1.197, max_abs_sn -1.194), so the stillness artifact from Days 5 and 11 is still doing the work. The random forest ignores the new features (importances 0.067 and 0.059) and still detects nothing. The decision-threshold sweeps agree: at 0.3 the new MLP reaches 5/5 trials with 11 false positives, so no cutoff passes the gate either. The served v2 artifacts are unchanged: there is nothing better to serve. The fix is still the camera re-run with raw landmarks and longer, deeper holds (Day 14 tool), not a shorter gate or a cleaner feature.
