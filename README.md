@@ -209,6 +209,8 @@ streamlit run demo/app.py
 
 Free deploy on Streamlit Community Cloud with main file `demo/app.py`. See `demo/README.md`.
 
+**Live demo:** https://dasarijashwanth-poseguard-demoapp-7dxpwy.streamlit.app/
+
 ### Docker
 
 Build from the repo root (the build context):
