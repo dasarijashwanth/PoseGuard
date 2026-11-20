@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 17. The Python pipeline is complete and tested (239/239 tests). A PyTorch MLP benchmark (Day 8) confirmed no model beats the rule baseline yet. Day 9 made the API genuinely Render-deploy-ready (Blueprint, slim image, $PORT binding), verified by a live local smoke test; Day 10 made the same API AWS-deploy-ready (ECS Fargate, ECR, S3, load balancer), validated by tests. Day 11 built a new shoulder signal (jump-gated deviation) that cuts tracker-noise false positives from 7 to 1 at the operating threshold and improves the classifier on every metric, but no candidate passes the gate yet. Day 12 ran the random forest and the MLP on the new gated features too: the MLP improves to F1 0.215 and reaches 4/5 trials, but with 3 false positives, and the forest still detects nothing, so no model passes the gate yet. Day 13 puts the gated models into the API: the shoulder logistic regression on the 11 gated features (F1 0.219, 5/5 trials, 3 false positives) is now the served model, and `POST /predict` scores a trailing history and applies the 5-second persistence gate, verified end to end on a real Run 1 hold. The served model still does not pass the gate, because of the 3 false positives. The live URL still needs his clicks on Render or AWS, and the Docker image has never been built for real because Docker is not installed on the build machine. Day 14 built the camera re-run capture tool (10 s holds, shoulder 8 deg and head 15 deg targets, all 33 landmarks per frame); the capture itself is the next step, then a re-benchmark on the new data. Day 15 reworked the head cue (velocity and dwell features, 60-configuration rule grid): best rule 2/5 trials with 3 false positives, best model MLP F1 0.105, and the honest verdict is still that nothing passes the gate, because the holds are shallow as well as brief. Day 16 built the Run 2 re-benchmark harness (capture validation plus manifest check, the Day 15 head and Day 11/12 shoulder evaluations with the Run 2 timings, rule baselines counted on the new data); it runs end to end on a synthetic fixture and waits for his capture run. Day 17 gave the shoulder cue the Day 15 treatment (threshold x persistence x velocity-cap grid, velocity and dwell features): the grid reaches 4/5 trials but never below 8 false positives, and the new features make the models worse, so nothing passes the gate and the served models are unchanged.
+**Status:** Built through Day 18. The Python pipeline is complete and tested (258/258 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
 
 ## What this project is
 
@@ -66,6 +66,17 @@ Root causes: one session, 23 tilted vs 360 upright windows, and protocol labels 
 
 The random forest hit about 93% accuracy by learning to always answer "upright". Accuracy lies on imbalanced data; F1 is the honest score. Neither model beats the rule baseline.
 
+### Best results as of Day 18
+
+After the Day 15 head rework, the Day 17 shoulder rework, and the Day 11 gated shoulder signal, this is the best any candidate does on Run 1. The gate is 4/5 trials with zero false positives.
+
+| Cue | Best rule | Best model |
+| --- | --- | --- |
+| Head | 4 deg / 2 s / 10 deg/s cap: 2/5 trials, 3 false positives, F1 0.400 | MLP F1 0.105 (2/5 trials, 3 FP) |
+| Shoulder | 1 deg / 5 s / 5 deg/s cap: 4/5 trials, 8 false positives, F1 0.471 | LR / MLP F1 0.172 (3/5 trials); RF 0/5 |
+
+The shoulder grid reaches the detection half of the gate but never the false-positive half, and the velocity and dwell features made both models worse, not better. The served v2 models (Day 13) are unchanged because nothing better exists to serve. Full numbers are in `experiments/model/BENCHMARK.md`, `results_day15.json`, and `results_day17.json`; the public demo in `demo/` shows the same numbers.
+
 ## How it works
 
 ```mermaid
@@ -105,6 +116,12 @@ Forward neck flexion, slouch, and medical assessment are out of scope. Feedback 
 .
 ├── README.md
 ├── PRD.md                        # MVP requirements and acceptance criteria
+├── demo/                         # Day 18 public Streamlit showcase
+│   ├── app.py                    # Streamlit UI: charts, gate verdicts, scoreboard
+│   ├── demo_data.py              # pure data/verdict logic (tested, no Streamlit import)
+│   ├── data/run1_sample.csv      # 727-row 1 Hz sample of the Run 1 session
+│   ├── requirements.txt
+│   └── README.md
 ├── experiments/
 │   ├── eval/                     # Python eval harness (Days 3-4)
 │   │   ├── circular.py           # wraparound-safe angle math
@@ -175,11 +192,22 @@ Serve the API:
 uvicorn experiments.model.api:app --port 8000
 ```
 
-Run the tests (239/239 in one combined run: 80 eval + 159 model):
+Run the tests (258/258 in one combined run: 80 eval + 178 model):
 
 ```bash
 python -m pytest experiments/ -q
 ```
+
+### Public demo (Streamlit, Day 18)
+
+The demo shows the real Run 1 session, not a simulation: sample angle charts, gate verdicts per trial, and the LR / RF / MLP scoreboard, with the honest nothing-passes verdict as the headline.
+
+```bash
+pip install -r demo/requirements.txt
+streamlit run demo/app.py
+```
+
+Free deploy on Streamlit Community Cloud with main file `demo/app.py`. See `demo/README.md`.
 
 ### Docker
 
@@ -226,6 +254,13 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - The holds are shallow as well as brief: the deepest hold peaks at 7.1 deg (against an 8 deg session threshold no hold ever reaches) and the longest run above 4 deg inside any hold is 2.2 s, while ordinary work contains head excursions of 10-18 deg sustained for 2-4 s. Trial 5 is barely recorded (6 frames), so at most 4/5 trials are measurable in Run 1. Best rule configuration is 4 deg, 2 s, 10 deg/s cap: 2/5 trials, 3 false positives, F1 0.400. The velocity cap does real work on false positives (9 to 3 at 4 deg / 2 s) but cannot create detections the holds never earned.
 - Two new head features (`experiments/model/features.py`): vel_h, mean speed of the head line in deg/s, and dwell_h, longest continuous run above 5 deg in seconds. Same grouped 5-fold CV as Days 8/12: LR F1 0.078 to 0.097 (1/5 to 2/5 trials, 6 to 4 FP), MLP 0.060 to 0.105 (1/5 to 2/5, 4 to 3 FP), RF still 0/5. The MLP's calm-only accuracy slips 0.685 to 0.605 and the new LR coefficients contradict each other (fraction-above-5 +1.468, dwell -0.962), so the small gains lean on noise, not signal. The served v2 artifacts are unchanged: nothing better to serve. Day 4's story needs correcting: dwell separates in the wrong direction, work dwells longer than the holds do. The fix is still the camera re-run with raw landmarks and longer, deeper holds (Day 14 tool).
 - 194/194 tests passing in one combined run (71 eval + 123 model, including 28 new Day 15 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY15.md` and `experiments/model/results_day15.json`.
+
+### Day 18 (Nov 20): Streamlit public demo showcase
+
+- The project had no public face, so Day 18 ships one: a Streamlit app (`demo/app.py`, free deploy on Streamlit Community Cloud) showing the real Run 1 session, not a simulation. Sample angle charts at 1 Hz (`demo/data/run1_sample.csv`, 727 rows), gate verdicts per trial, and the LR / RF / MLP scoreboard, with the honest verdict as the headline.
+- The numbers are the same as Days 15/17: best shoulder rule 4/5 trials with 8 false positives (F1 0.471), best head rule 2/5 with 3 false positives (F1 0.400), best models F1 0.172 shoulder and 0.105 head, random forest 0/5 on both cues. Nothing passes the gate, and the demo says so instead of hiding it.
+- Building the sample surfaced a 6-second tracker meltdown at 447 s mid-work (head -94.95 deg, shoulder +141.74 deg); the chart clips its axis at +/-25 deg and discloses the meltdown rather than deleting it.
+- 258/258 tests passing in one combined run (80 eval + 178 model, including 19 new Day 18 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY18.md`.
 
 ### Day 17 (Nov 19): shoulder cue rework
 
@@ -336,7 +371,7 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 
 ## What comes next
 
-1. **Camera re-run:** longer, deeper head holds (head threshold 5), all 10 trials plus a 5-minute work sample and a landmark-loss test with the camera covered. Serve the updated experiment page from localhost.
-2. **Retrain on the re-run data:** run the eval harness, then retrain the classifier and compare the new run in MLflow.
-3. **A different signal for the shoulder cue:** the angle level cannot separate a dropped shoulder from leaning at a desk. Candidates are movement-based features or a different landmark pair.
-4. **Live deploy of the API:** Day 9 made the repo Render-ready (Blueprint, slim image, $PORT binding) and wrote the click-by-click guide in `docs/DEPLOY.md`. The live URL still needs his Render clicks; once it exists it goes into this README. No live URL until then.
+1. **His camera re-run:** the Day 14 capture tool (`experiments/rerun-capture.html`, 10 s holds, shoulder 8 deg and head 15 deg targets, all 33 landmarks per frame) records the new session from localhost; the Day 16 harness (`python -m experiments.model.day16 --csv <capture.csv>`) re-benchmarks everything on it the moment it lands. This is the missing piece for the whole project.
+2. **Live deploy of the API:** Day 9 made the repo Render-ready and Day 10 AWS-ready; the live URL still needs his clicks (`docs/DEPLOY.md` free, `docs/DEPLOY_AWS.md` about $25/month). Once it exists it goes into this README.
+3. **Live deploy of the demo:** the Day 18 Streamlit app is deploy-ready on Streamlit Community Cloud (free); same story, his clicks, then the link goes here.
+4. **Then Week 6:** the Autonomous Job Application and Form-Fill Agent starts only after PoseGuard wraps.
