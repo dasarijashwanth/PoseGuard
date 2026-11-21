@@ -1,0 +1,6 @@
+# Streamlit config for the PoseGuard demo.
+# WebRTC (the live video check) needs websocket compression off, or the
+# video stream stalls on Streamlit Community Cloud. See
+# https://github.com/whitphx/streamlit-webrtc
+[server]
+enableWebsocketCompression = false
