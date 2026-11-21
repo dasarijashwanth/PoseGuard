@@ -1,8 +1,9 @@
-# PoseGuard public demo (Day 18)
+# PoseGuard public demo (Day 19)
 
-A Streamlit showcase of the project for anyone who opens the repo: the
-real Run 1 validation session, gate verdicts per trial, and the model
-scoreboard, with the honest verdict up front.
+A Streamlit app for anyone who opens the repo: try the live webcam
+check yourself, then read the real Run 1 validation session, gate
+verdicts per trial, and the model scoreboard, with the honest verdict
+up front.
 
 ## Run locally
 
@@ -15,10 +16,28 @@ streamlit run demo/app.py
 
 Streamlit Community Cloud: new app, repo `dasarijashwanth/PoseGuard`,
 main file `demo/app.py`. No secrets or environment variables needed;
-the app reads only the bundled sample CSV.
+the app reads only the bundled sample CSV and the bundled pose model
+(`demo/pose_landmarker_lite.task`, MediaPipe PoseLandmarker lite).
 
 ## What it shows
 
+- **Live webcam check**: real-time head and shoulder angles from your
+  camera, with the gate firing on holds. Live video runs through
+  streamlit-webrtc with MediaPipe PoseLandmarker (VIDEO mode) on the
+  server; if the video stream cannot start, the snapshot check
+  (st.camera_input, IMAGE mode) does the same job one photo at a
+  time. Calibrate upright first, then hold a tilt or a dropped
+  shoulder for 5 seconds. Two gate presets: the operating thresholds
+  (head 8 deg / shoulder 6 deg, 5 s) and the best rule-grid configs
+  (head 4 deg / 2 s, shoulder 1 deg / 5 s), so visitors can see why
+  the best configs fail. No video leaves the browser: landmarks are
+  computed from the frames on the spot, only angles are kept.
+  `.streamlit/config.toml` turns websocket compression off, which the
+  video stream needs on Community Cloud.
+- **Purpose and how to use it**: plain words on what PoseGuard is for
+  and how to try the check, at the top of the page.
+- **Feedback**: a section linking to GitHub issues
+  (github.com/dasarijashwanth/PoseGuard/issues) for live-check reports.
 - **Session chart**: head and shoulder deviations over time, 1 Hz sample
   of the full Run 1 session (`demo/data/run1_sample.csv`, 727 rows,
   downsampled from 7,820 frames). Head is the circular deviation on

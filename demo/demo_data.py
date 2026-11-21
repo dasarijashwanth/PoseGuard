@@ -176,6 +176,52 @@ VERDICT = (
     "at 7.1 deg against an 8 deg threshold no hold ever reaches."
 )
 
+# --- Day 19: purpose, how to use it, feedback -----------------------
+# The demo stopped being a static showcase on Day 19, so the page says
+# in plain words what PoseGuard is for and how to try it. Kept here
+# (pure data, no Streamlit import) so tests can pin the copy.
+
+PURPOSE_HEADING = "What PoseGuard is for"
+PURPOSE_BODY = (
+    "PoseGuard is on-device vision AI that watches head and shoulder "
+    "angles while you work at a desk and nudges you when you slouch. "
+    "It runs on your webcam, in your browser, and no video ever leaves "
+    "your machine: the angles are computed from pose landmarks on the "
+    "spot, and only the angles are kept. This page is the honest "
+    "status report for that idea. The validation session below shows "
+    "the real numbers, including the ones that do not flatter it: "
+    "nothing passes the gate yet."
+)
+
+HOWTO_HEADING = "How to use this demo"
+HOWTO_STEPS = [
+    "Try it live: open the webcam check below, sit upright, and press "
+    "Calibrate so the app learns your upright pose. Then tilt your head "
+    "or drop one shoulder and hold it for 5 seconds. The gate fires when "
+    "the hold lasts, and the live readouts show your angles as you move.",
+    "If the live video does not start in your browser, use the snapshot "
+    "check instead: take a photo, then take another while holding the "
+    "pose. Each snapshot is one sample, and repeated snapshots build the "
+    "same gate the video uses.",
+    "Read the session below it: the real Run 1 validation session, gate "
+    "verdicts per trial, and the model scoreboard. The chart axis is "
+    "clipped at +/-25 deg and the 447 s tracker meltdown is disclosed, "
+    "not deleted.",
+    "The holds this project is chasing are 10 seconds at 8 deg (shoulder) "
+    "and 15 deg (head). The holds in Run 1 moved the angle only about "
+    "2.5 deg on the shoulder line, which is why the gate stays unpassed.",
+]
+
+FEEDBACK_HEADING = "Feedback"
+FEEDBACK_URL = "https://github.com/dasarijashwanth/PoseGuard/issues"
+FEEDBACK_BODY = (
+    "Tried the live check and it fired on your everyday lean, or never "
+    "fired at all? That is useful data: open an issue and say what "
+    "happened, which check you used (live video or snapshot), and what "
+    "pose you held. Bug reports, better thresholds, and a working "
+    "camera re-run are all welcome."
+)
+
 
 def load_sample(path: str | Path = SAMPLE_CSV) -> pd.DataFrame:
     """Load the trimmed Run 1 sample (1 Hz, circular deviations).
