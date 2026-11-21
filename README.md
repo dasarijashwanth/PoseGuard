@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 18. The Python pipeline is complete and tested (258/258 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
+**Status:** Built through Day 19. The Python pipeline is complete and tested (286/286 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this, and Day 19 turns it into a real app: a live webcam check (streamlit-webrtc video, snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
 
 ## What this project is
 
@@ -192,15 +192,15 @@ Serve the API:
 uvicorn experiments.model.api:app --port 8000
 ```
 
-Run the tests (258/258 in one combined run: 80 eval + 178 model):
+Run the tests (286/286 in one combined run: 80 eval + 206 model):
 
 ```bash
 python -m pytest experiments/ -q
 ```
 
-### Public demo (Streamlit, Day 18)
+### Public demo (Streamlit, Day 19)
 
-The demo shows the real Run 1 session, not a simulation: sample angle charts, gate verdicts per trial, and the LR / RF / MLP scoreboard, with the honest nothing-passes verdict as the headline.
+The demo shows the real Run 1 session, not a simulation: sample angle charts, gate verdicts per trial, and the LR / RF / MLP scoreboard, with the honest nothing-passes verdict as the headline. Day 19 adds a live webcam check (streamlit-webrtc video with a snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues.
 
 ```bash
 pip install -r demo/requirements.txt
@@ -256,6 +256,14 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - The holds are shallow as well as brief: the deepest hold peaks at 7.1 deg (against an 8 deg session threshold no hold ever reaches) and the longest run above 4 deg inside any hold is 2.2 s, while ordinary work contains head excursions of 10-18 deg sustained for 2-4 s. Trial 5 is barely recorded (6 frames), so at most 4/5 trials are measurable in Run 1. Best rule configuration is 4 deg, 2 s, 10 deg/s cap: 2/5 trials, 3 false positives, F1 0.400. The velocity cap does real work on false positives (9 to 3 at 4 deg / 2 s) but cannot create detections the holds never earned.
 - Two new head features (`experiments/model/features.py`): vel_h, mean speed of the head line in deg/s, and dwell_h, longest continuous run above 5 deg in seconds. Same grouped 5-fold CV as Days 8/12: LR F1 0.078 to 0.097 (1/5 to 2/5 trials, 6 to 4 FP), MLP 0.060 to 0.105 (1/5 to 2/5, 4 to 3 FP), RF still 0/5. The MLP's calm-only accuracy slips 0.685 to 0.605 and the new LR coefficients contradict each other (fraction-above-5 +1.468, dwell -0.962), so the small gains lean on noise, not signal. The served v2 artifacts are unchanged: nothing better to serve. Day 4's story needs correcting: dwell separates in the wrong direction, work dwells longer than the holds do. The fix is still the camera re-run with raw landmarks and longer, deeper holds (Day 14 tool).
 - 194/194 tests passing in one combined run (71 eval + 123 model, including 28 new Day 15 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY15.md` and `experiments/model/results_day15.json`.
+
+### Day 19 (Nov 21): the demo becomes a real app
+
+- The Day 18 showcase was static, so Day 19 makes it a real app in the three parts he picked: (a) a live webcam check in `demo/app.py` with pure angle/gate logic in `demo/webcam.py`, (b) a purpose and how-to-use section at the top of the page, (c) a feedback section linking to GitHub issues.
+- Live video runs through streamlit-webrtc with MediaPipe PoseLandmarker (VIDEO mode), annotated frames and live angle readouts, calibrate upright then hold 5 s to fire the gate. If the video stream cannot start, the snapshot check (st.camera_input, IMAGE mode) does the same job one photo at a time. Two gate presets: operating thresholds (head 8 deg / shoulder 6 deg, 5 s) and the best rule-grid configs (head 4 deg / 2 s, shoulder 1 deg / 5 s), so visitors can see why the best configs fail. No video leaves the browser; only angles are kept. The lite landmarker model is bundled (`demo/pose_landmarker_lite.task`, 5.8 MB) and `.streamlit/config.toml` turns websocket compression off for the video stream on Community Cloud.
+- Two things found while building: mediapipe 1.x removed the legacy `mp.solutions.pose` API, so the app uses the supported Tasks Vision API; and MediaPipe Tasks needs system GL libraries (`libegl1`, `libgles2`), which this VM lacked and the Cloud image already carries.
+- The numbers are unchanged: best shoulder rule 4/5 trials with 8 false positives (F1 0.471), best head rule 2/5 with 3 false positives (F1 0.400), best models F1 0.172 shoulder and 0.105 head. Nothing passes the gate, and the live check is the same gate running on the visitor's own camera.
+- 286/286 tests passing in one combined run (80 eval + 206 model, including 28 new Day 19 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY19.md`.
 
 ### Day 18 (Nov 20): Streamlit public demo showcase
 
