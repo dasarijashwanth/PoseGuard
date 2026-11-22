@@ -18,6 +18,11 @@ Streamlit Community Cloud: new app, repo `dasarijashwanth/PoseGuard`,
 main file `demo/app.py`. No secrets or environment variables needed;
 the app reads only the bundled sample CSV and the bundled pose model
 (`demo/pose_landmarker_lite.task`, MediaPipe PoseLandmarker lite).
+`demo/requirements.txt` sits next to the app file, and `packages.txt`
+at the repo root installs the system libraries MediaPipe needs on
+Cloud (libgl1, libglib2.0-0, libegl1, libgles2, Day 20): mediapipe
+imports cv2 at module load, and the cv2 that wins links against
+libGL, which the Cloud image does not ship.
 
 ## What it shows
 
@@ -69,7 +74,12 @@ Every number in the demo is pinned to a results file and to tests in
 ## Layout
 
 - `demo/app.py`: the Streamlit UI only. It imports `demo_data`, never
-  the evaluation pipeline, so the app stays light.
+  the evaluation pipeline, so the app stays light. It probes the
+  live-check dependencies through `demo/env_check.py` and shows the
+  exact import error when the check cannot load.
+- `demo/env_check.py`: pure dependency probing and diagnostics for the
+  live check (Day 20). No Streamlit, MediaPipe, or OpenCV import at
+  module level.
 - `demo/demo_data.py`: pure data + verdict logic, fully tested without
   Streamlit installed.
 - `demo/data/run1_sample.csv`: trimmed 1 Hz sample of Run 1. The full

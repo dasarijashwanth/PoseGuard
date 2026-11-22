@@ -55,30 +55,56 @@ from webcam import (
 )
 
 # MediaPipe Tasks is the supported pose API (the legacy solutions API
-# was removed in mediapipe 1.x). Both imports are guarded so the
-# sample showcase still renders when the live check cannot load.
-try:
-    import av
-    import cv2
-    from mediapipe import Image as MPImage
-    from mediapipe import ImageFormat
-    from mediapipe.tasks.python import BaseOptions
-    from mediapipe.tasks.python.vision import (
-        PoseLandmarker,
-        PoseLandmarkerOptions,
-        RunningMode,
-    )
+# was removed in mediapipe 1.x). Each dependency is probed on its own
+# (demo/env_check.py) so a failure names itself: Day 20 found the
+# Cloud failure was cv2, not MediaPipe. mediapipe 1.2.3 imports cv2
+# at module load (tasks vision drawing_utils), and the cv2 that wins
+# is opencv-contrib-python, mediapipe's own dependency, which links
+# against libGL.so.1. The Cloud image does not ship libGL, so
+# `import mediapipe` failed there while it worked locally; packages.txt
+# installs libgl1 (plus libglib2.0-0, libegl1, libgles2). The showcase
+# below still renders when the live check cannot load, and the app now
+# shows the exact import error in an expander instead of a bare
+# warning. Names are None when their module did not load.
+from env_check import (
+    diagnostic_text,
+    landmarker_error_hint,
+    live_check_status,
+    probe_live_deps,
+)
 
-    MEDIAPIPE_AVAILABLE = True
-except Exception:  # pragma: no cover - environment without MediaPipe
-    MEDIAPIPE_AVAILABLE = False
+_LIVE_MODULES, IMPORT_ERRORS = probe_live_deps()
+_STATUS = live_check_status(IMPORT_ERRORS)
+MEDIAPIPE_AVAILABLE = _STATUS["snapshot_ok"]
+WEBRTC_AVAILABLE = _STATUS["video_ok"]
 
-try:
-    from streamlit_webrtc import RTCConfiguration, VideoProcessorBase, webrtc_streamer
-
-    WEBRTC_AVAILABLE = True
-except Exception:  # pragma: no cover - environment without webrtc
-    WEBRTC_AVAILABLE = False
+av = _LIVE_MODULES["av"]
+cv2 = _LIVE_MODULES["cv2"]
+_mp = _LIVE_MODULES["mediapipe"]
+if _mp is not None:
+    MPImage = _mp.Image
+    ImageFormat = _mp.ImageFormat
+    # _mp.tasks is mediapipe.tasks.python (mediapipe/__init__.py binds
+    # it as `tasks`), so BaseOptions and the vision classes hang off it
+    # directly, not off a further .python attribute.
+    BaseOptions = _mp.tasks.BaseOptions
+    PoseLandmarker = _mp.tasks.vision.PoseLandmarker
+    PoseLandmarkerOptions = _mp.tasks.vision.PoseLandmarkerOptions
+    RunningMode = _mp.tasks.vision.RunningMode
+else:
+    MPImage = ImageFormat = BaseOptions = None
+    PoseLandmarker = PoseLandmarkerOptions = RunningMode = None
+_webrtc = _LIVE_MODULES["streamlit_webrtc"]
+if _webrtc is not None:
+    RTCConfiguration = _webrtc.RTCConfiguration
+    VideoProcessorBase = _webrtc.VideoProcessorBase
+    webrtc_streamer = _webrtc.webrtc_streamer
+else:
+    # PoseProcessor is only ever built when WEBRTC_AVAILABLE, so object
+    # is a safe stand-in base that keeps this module importable.
+    RTCConfiguration = None
+    VideoProcessorBase = object
+    webrtc_streamer = None
 
 MODEL_PATH = "demo/pose_landmarker_lite.task"
 # The lite landmarker is bundled in the repo so the deployed app does
@@ -87,8 +113,12 @@ MODEL_PATH = "demo/pose_landmarker_lite.task"
 if not os.path.exists(MODEL_PATH):
     MODEL_PATH = os.path.join(os.path.dirname(__file__), "pose_landmarker_lite.task")
 
-RTC_CONFIG = RTCConfiguration(
-    {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+RTC_CONFIG = (
+    RTCConfiguration(
+        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+    )
+    if WEBRTC_AVAILABLE
+    else None
 )
 
 # Frames collected for one calibration run in live video mode.
@@ -98,26 +128,34 @@ CALIBRATION_FRAMES = 15
 @st.cache_resource
 def _image_landmarker():
     """PoseLandmarker for single snapshots (IMAGE running mode)."""
-    options = PoseLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path=MODEL_PATH),
-        running_mode=RunningMode.IMAGE,
-        num_poses=1,
-        min_pose_detection_confidence=0.5,
-    )
-    return PoseLandmarker.create_from_options(options)
+    try:
+        options = PoseLandmarkerOptions(
+            base_options=BaseOptions(model_asset_path=MODEL_PATH),
+            running_mode=RunningMode.IMAGE,
+            num_poses=1,
+            min_pose_detection_confidence=0.5,
+        )
+        return PoseLandmarker.create_from_options(options)
+    except OSError as exc:
+        # Import can succeed while creation fails: the native library
+        # loads lazily, so a missing libEGL only shows up here.
+        raise RuntimeError(landmarker_error_hint(exc)) from exc
 
 
 @st.cache_resource
 def _video_landmarker():
     """PoseLandmarker for the video stream (VIDEO running mode)."""
-    options = PoseLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path=MODEL_PATH),
-        running_mode=RunningMode.VIDEO,
-        num_poses=1,
-        min_pose_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
-    )
-    return PoseLandmarker.create_from_options(options)
+    try:
+        options = PoseLandmarkerOptions(
+            base_options=BaseOptions(model_asset_path=MODEL_PATH),
+            running_mode=RunningMode.VIDEO,
+            num_poses=1,
+            min_pose_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+        return PoseLandmarker.create_from_options(options)
+    except OSError as exc:
+        raise RuntimeError(landmarker_error_hint(exc)) from exc
 
 
 def _detect_image(rgb) -> list | None:
@@ -273,6 +311,8 @@ def _live_check() -> None:
             "environment. The Run 1 session below still works, and the "
             "live check runs where the demo requirements are installed."
         )
+        with st.expander("Why the live check is unavailable"):
+            st.code(diagnostic_text(IMPORT_ERRORS))
         return
 
     preset = st.radio(
@@ -299,6 +339,9 @@ def _live_check() -> None:
             "Live video streaming is not available in this environment, "
             "so the snapshot check below is the way to try it."
         )
+        if IMPORT_ERRORS:
+            with st.expander("Why live video is unavailable"):
+                st.code(diagnostic_text(IMPORT_ERRORS))
         tab_video, tab_snap = None, st.container()
 
     if tab_video is not None:

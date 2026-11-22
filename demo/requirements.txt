@@ -1,6 +1,20 @@
-streamlit>=1.30
+# Demo dependencies, installed by Streamlit Community Cloud from this
+# file (it sits next to demo/app.py, which Community Cloud supports).
+# The live-check stack is pinned to the versions verified to import
+# together on Python 3.12 (Day 20): mediapipe and streamlit-webrtc
+# break across releases, so ranges are not safe here. pandas and altair
+# stay ranged; the ranges resolved to pandas 3 and altair 6 without
+# breaking the app.
+#
+# Why opencv-python-headless alone does not fix the Cloud: mediapipe
+# depends on opencv-contrib-python (non-headless), which pip installs
+# after it and whose cv2 files overwrite the headless ones. That cv2
+# links against libGL.so.1, which the Cloud image does not ship, so
+# `import mediapipe` fails there. packages.txt at the repo root
+# installs libgl1 (plus libglib2.0-0, libegl1, libgles2) to close it.
+streamlit==1.67.0
 pandas>=2.0
 altair>=5.0
-mediapipe>=1.0
-opencv-python-headless>=4.8
-streamlit-webrtc>=0.47
+mediapipe==1.2.3
+opencv-python-headless==5.1.0.95
+streamlit-webrtc==0.79.1
