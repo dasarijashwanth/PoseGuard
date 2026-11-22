@@ -1,12 +1,3 @@
-# Day 20: system libraries the demo needs on Streamlit Community Cloud.
-# Community Cloud installs this file with apt-get before pip, from the
-# repository root. mediapipe 1.2.3 imports cv2 at module load (its tasks
-# vision drawing_utils does `import cv2`), and the cv2 that wins is
-# opencv-contrib-python, mediapipe's own dependency, which links against
-# libGL.so.1 and libglib-2.0.so.0. The Cloud image ships neither, so
-# `import mediapipe` failed there while it worked locally; libgl1 and
-# libglib2.0-0 close that gap. libegl1 and libgles2 are what mediapipe's
-# own native library links against (ldd on libmediapipe.so).
 libgl1
 libglib2.0-0
 libegl1
