@@ -51,6 +51,19 @@ MIN_WORK_S = 240.0          # work sample cut short below 4 min is a warning
 MIN_GAP_S = 1.0             # tracking-loss gaps of 1 s or more are listed
 
 
+def _safe_hold_id(value):
+    """int(value) when the value is an integer, else None.
+
+    A hold_id of 1.5 must not silently truncate to 1, and a
+    non-numeric hold_id must not raise int() inside the validator.
+    """
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return int(number) if number == int(number) else None
+
+
 def tracking_gaps(frames: pd.DataFrame,
                   min_gap_s: float = MIN_GAP_S) -> list[dict]:
     """Runs of lost tracking spanning at least `min_gap_s` seconds.
@@ -86,7 +99,7 @@ def tracking_gaps(frames: pd.DataFrame,
                 "step": str(row["step"]),
                 "phase": str(row["phase"]),
                 "cue": str(row["cue"]) if pd.notna(row["cue"]) else "",
-                "hold_id": (int(row["hold_id"])
+                "hold_id": (_safe_hold_id(row["hold_id"])
                             if pd.notna(row["hold_id"]) else None),
             })
         i = j + 1
@@ -135,6 +148,12 @@ def validate_rerun_csv(path: str) -> dict:
         return {"ok": False, "errors": [str(e)], "warnings": [],
                 "frames": 0, "tracked_fraction": 0.0, "holds": [],
                 "gaps": [], "work_s": 0.0}
+    except OSError as e:
+        return {"ok": False,
+                "errors": [f"cannot read capture file {path}: {e}"],
+                "warnings": [],
+                "frames": 0, "tracked_fraction": 0.0, "holds": [],
+                "gaps": [], "work_s": 0.0}
     frames = session.frames
     meta = session.meta
 
@@ -163,17 +182,62 @@ def validate_rerun_csv(path: str) -> dict:
                 "holds": [], "gaps": [], "work_s": 0.0}
 
     # --- label values -------------------------------------------------------
-    bad_phase = sorted(set(frames["phase"].dropna().unique()) - set(PHASES))
+    bad_phase = sorted(set(frames["phase"].dropna().unique()) - set(PHASES),
+                       key=str)
     if bad_phase:
         errors.append(f"unknown phase values: {bad_phase}")
-    bad_cue = sorted(set(frames["cue"].dropna().unique()) - set(CUES) - {""})
+    bad_cue = sorted(set(frames["cue"].dropna().unique()) - set(CUES) - {""},
+                     key=str)
     if bad_cue:
         errors.append(f"unknown cue values: {bad_cue}")
     hold_ids = frames["hold_id"].dropna().unique()
-    bad_hold = sorted(int(h) for h in hold_ids
-                      if int(h) < 1 or int(h) > TRIALS_PER_CUE)
+    bad_hold = sorted({str(h) for h in hold_ids
+                       if _safe_hold_id(h) is None
+                       or not 1 <= _safe_hold_id(h) <= TRIALS_PER_CUE},
+                      key=str)
     if bad_hold:
-        errors.append(f"hold_id out of range 1-5: {bad_hold}")
+        errors.append(f"hold_id values must be integers 1-5, got: {bad_hold}")
+
+    # --- tracked-frame data quality -----------------------------------------
+    # The capture tool writes numbers for tilt, deviation and landmarks
+    # whenever a frame is tracked, and blanks when it is not. A tracked
+    # frame with a blank angle is missing data (a warning: the
+    # benchmark drops those frames). An infinite angle is corrupt data
+    # (an error: one inf poisons the EMA smoothing for the rest of
+    # the session). The same split applies to landmarks, except the
+    # benchmark does not consume them yet, so missing landmarks only
+    # warn. A cue with no usable tracked frames at all cannot be
+    # benchmarked, so the file is rejected with the cue named.
+    tracked = frames["tracking"] == 1
+    for col in ("head_tilt", "shoulder_tilt",
+                "head_deviation", "shoulder_deviation"):
+        vals = frames.loc[tracked, col].to_numpy(dtype=float)
+        n_inf = int(np.isinf(vals).sum()) if len(vals) else 0
+        if n_inf:
+            errors.append(f"{col} has {n_inf} infinite values on "
+                          f"tracked frames")
+        n_nan = int(np.isnan(vals).sum()) if len(vals) else 0
+        if n_nan:
+            warnings.append(f"{col} has {n_nan} missing values on "
+                            f"tracked frames")
+    lm_vals = frames.loc[tracked, landmark_columns()].to_numpy(dtype=float)
+    n_bad_lm = (int((~np.isfinite(lm_vals)).any(axis=1).sum())
+                if len(lm_vals) else 0)
+    if n_bad_lm:
+        warnings.append(f"{n_bad_lm} tracked frames have missing or "
+                        f"non-finite landmark values")
+    n_dup = int(frames["elapsed_s"].duplicated().sum())
+    if n_dup:
+        warnings.append(f"{n_dup} duplicate elapsed_s values "
+                        f"(duplicate frame rows)")
+    for cue in CUES:
+        tilt_col = "head_tilt" if cue == "head" else "shoulder_tilt"
+        usable = frames[(frames["step"] == cue) & tracked
+                        & np.isfinite(frames[tilt_col].to_numpy(dtype=float))]
+        if len(usable) == 0:
+            errors.append(f"no usable tracked frames for cue {cue}: "
+                          f"the {cue} step has no tracked data to "
+                          f"benchmark")
 
     # --- holds ---------------------------------------------------------------
     holds: list[dict] = []

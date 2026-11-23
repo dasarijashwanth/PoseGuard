@@ -133,11 +133,15 @@ def hold_dwells(frames: pd.DataFrame, session: SessionData,
             t0, alignment["offset_s"], ready_s, hold_s, rest_s), 1):
         w = step_frames[(step_frames["elapsed_s"] >= lo)
                         & (step_frames["elapsed_s"] < hi)]
+        mean_abs = w["h_dev"].abs().mean() if len(w) else float("nan")
+        max_abs = w["h_dev"].abs().max() if len(w) else float("nan")
         row = {"trial": k, "samples": int(len(w)),
-               "mean_abs_dev": (round(float(w["h_dev"].abs().mean()), 2)
-                                if len(w) else float("nan")),
-               "max_abs_dev": (round(float(w["h_dev"].abs().max()), 2)
-                               if len(w) else float("nan"))}
+               # No data in the window means no mean, not a NaN mean:
+               # NaN would leak into results JSON (invalid strict JSON).
+               "mean_abs_dev": (round(float(mean_abs), 2)
+                                if pd.notna(mean_abs) else None),
+               "max_abs_dev": (round(float(max_abs), 2)
+                               if pd.notna(max_abs) else None)}
         for thr in thresholds:
             row[f"dwell_gt{thr}_s"] = round(dwell_s(w, "h_dev", thr), 1)
         rows.append(row)

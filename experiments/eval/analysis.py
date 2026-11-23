@@ -59,7 +59,11 @@ def ema_smooth(angles: pd.Series, alpha: float = EMA_ALPHA) -> pd.Series:
     out: list[float] = []
     smooth: float | None = None
     for a in angles:
-        if a is None or (isinstance(a, float) and math.isnan(a)):
+        if a is None or (isinstance(a, float) and not math.isfinite(a)):
+            # A missing angle breaks the smoothing run; an infinite
+            # one must do the same. The old code only skipped NaN, so
+            # one inf frame (wrap_angle(inf) is NaN) poisoned the
+            # smooth value for the rest of the session.
             out.append(float("nan"))
             continue
         if smooth is None:
@@ -165,8 +169,11 @@ def _window_stats(frames: pd.DataFrame, dev_col: str,
                   lo: float, hi: float) -> dict:
     w = frames[(frames["elapsed_s"] >= lo) & (frames["elapsed_s"] < hi)][dev_col].dropna()
     if len(w) == 0:
-        return {"samples": 0, "mean": float("nan"), "std": float("nan"),
-                "max_abs": float("nan")}
+        # A window with no data has no mean, not a NaN mean: NaN
+        # would leak into results JSON (invalid strict JSON) and
+        # poison the alignment score below.
+        return {"samples": 0, "mean": None, "std": None,
+                "max_abs": None}
     return {"samples": int(len(w)), "mean": round(float(w.mean()), 3),
             "std": round(float(w.std(ddof=1)), 3) if len(w) > 1 else 0.0,
             "max_abs": round(float(w.abs().max()), 3)}
@@ -204,13 +211,28 @@ def align_trials(frames: pd.DataFrame, session: SessionData, cue: str,
             if k < len(summary):
                 r = summary[k]
                 err += abs(s["samples"] - r["samples"]) / 10.0
-                err += abs((s["mean"] or 0) - r["head_mean" if cue == "head" else "shoulder_mean"])
-                err += abs((s["std"] or 0) - r["head_std" if cue == "head" else "shoulder_std"])
+                if s["samples"] == 0:
+                    # No data at all in this hold: the mean and std
+                    # are None, and the old code fed them straight
+                    # into the error, which made the whole score NaN.
+                    # NaN never wins a grid search, so the best
+                    # trial list stayed empty and analyze_cue crashed
+                    # with IndexError on a file the validator had
+                    # passed. Penalise the empty window outright.
+                    err += 100.0
+                else:
+                    mean = s["mean"] if pd.notna(s["mean"]) else 0.0
+                    std = s["std"] if pd.notna(s["std"]) else 0.0
+                    err += abs(mean - r["head_mean" if cue == "head" else "shoulder_mean"])
+                    err += abs(std - r["head_std" if cue == "head" else "shoulder_std"])
         return err, stats
 
     if summary:
-        best_offset, best_err, best_stats = 0.0, float("inf"), []
-        for i in range(0, 121):
+        # Seed the best from offset 0 so the trial list is never
+        # empty, whatever the scores come back as.
+        best_err, best_stats = score(0.0)
+        best_offset = 0.0
+        for i in range(1, 121):
             err, stats = score(i / 10.0)
             if err < best_err:
                 best_offset, best_err, best_stats = i / 10.0, err, stats

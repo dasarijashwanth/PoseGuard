@@ -28,6 +28,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
 REQUIRED_META = {
@@ -92,7 +93,8 @@ def _parse_meta(lines: list[str]) -> dict:
 
 def load_session(path: str) -> SessionData:
     """Read an export CSV, validate its schema, return a SessionData."""
-    lines = open(path, encoding="utf-8").read().splitlines()
+    with open(path, encoding="utf-8") as handle:
+        lines = handle.read().splitlines()
     if not lines:
         raise ValueError("empty file")
 
@@ -124,21 +126,42 @@ def load_session(path: str) -> SessionData:
         raise ValueError("no per-frame data rows found")
 
     import io
-    frames = pd.read_csv(io.StringIO("\n".join([lines[header_i]] + frame_lines)))
+    # A row with more fields than the header does not raise in
+    # pandas: it silently treats the first column as an index and
+    # shifts every value, so check the field count first and name
+    # the bad row instead of letting a shifted column surface as a
+    # confusing "missing values" error downstream.
+    ncols = len(header)
+    for j, line in enumerate(frame_lines):
+        nfields = len(line.split(","))
+        if nfields != ncols:
+            raise ValueError(
+                f"frame row {j + 1} has {nfields} fields, "
+                f"expected {ncols}")
+    frames = pd.read_csv(
+        io.StringIO("\n".join([lines[header_i]] + frame_lines)),
+        low_memory=False)
     for col in ["elapsed_s", "head_tilt", "shoulder_tilt",
                 "head_deviation", "shoulder_deviation"]:
         frames[col] = pd.to_numeric(frames[col], errors="coerce")
     frames["tracking"] = pd.to_numeric(frames["tracking"], errors="coerce")
     frames["timestamp"] = pd.to_datetime(frames["timestamp"], errors="coerce")
+
+    # Time must be finite and increasing in the file itself. The old
+    # code sorted first and checked monotonicity after, so that check
+    # could never fire: sorting hid out-of-order rows instead of
+    # reporting them.
+    elapsed = frames["elapsed_s"].to_numpy(dtype=float)
+    if not np.isfinite(elapsed).all():
+        raise ValueError("elapsed_s has missing or non-finite values")
+    if not frames["elapsed_s"].is_monotonic_increasing:
+        raise ValueError(
+            "elapsed_s is not monotonic increasing in file order")
     frames = frames.sort_values("elapsed_s").reset_index(drop=True)
 
     unknown = set(frames["step"].dropna().unique()) - KNOWN_STEPS
     if unknown:
         raise ValueError(f"unknown step values: {sorted(unknown)}")
-    if frames["elapsed_s"].isna().any():
-        raise ValueError("elapsed_s has missing values")
-    if not frames["elapsed_s"].is_monotonic_increasing:
-        raise ValueError("elapsed_s is not monotonic increasing")
 
     # --- per-trial summary section (may be empty for a cue) ---
     trial_summary = []
