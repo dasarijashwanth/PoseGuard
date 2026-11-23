@@ -111,7 +111,18 @@ def check_manifest(manifest_path: str, session, validation: dict) -> list[str]:
     if data.get("protocol") != "Run 2 re-run capture":
         errors.append(f"manifest protocol is not a Run 2 capture: "
                       f"{data.get('protocol')!r}")
-    if data.get("frames") != validation["frames"]:
+    manifest_frames = data.get("frames")
+    if isinstance(manifest_frames, str):
+        # A JSON string holding the same number is the same count,
+        # not a mismatch: "5150" and 5150 agree.
+        try:
+            manifest_frames = int(manifest_frames)
+        except ValueError:
+            try:
+                manifest_frames = float(manifest_frames)
+            except ValueError:
+                pass
+    if manifest_frames != validation["frames"]:
         errors.append(f"manifest frames {data.get('frames')} do not "
                       f"match the CSV ({validation['frames']} frames)")
     for key, meta_key in (("baseline_head_deg", "Baseline head (deg)"),
@@ -145,7 +156,10 @@ def validate_capture(csv_path: str,
     """
     report = validate_rerun_csv(csv_path)
     manifest_errors: list[str] = []
-    if manifest_path is not None:
+    if manifest_path is not None and report["ok"]:
+        # Only check the manifest against a CSV that loaded: loading
+        # the session of a file validation already rejected would
+        # raise the loader's raw error and hide the real reasons.
         session = load_session(csv_path)
         manifest_errors = check_manifest(manifest_path, session, report)
     report["manifest_errors"] = manifest_errors
@@ -213,6 +227,23 @@ def _feature_sets_with_run2_baseline(windows, cue: str, old_feats,
     return out
 
 
+def _require_both_classes(windows, cue: str) -> None:
+    """A cue needs tilted and upright windows to benchmark.
+
+    A file can pass validation with a cue's holds mostly untracked:
+    too little tracked data to form even one tilted window, while
+    work windows still exist. The model stage would then fail inside
+    sklearn with a message about classes that names nothing about
+    the actual problem, so name it here instead.
+    """
+    if windows["label"].nunique() < 2:
+        raise ValueError(
+            f"no tilted windows for cue {cue!r}: the {cue} holds "
+            f"have too little tracked data to benchmark (the file "
+            f"passed validation, but the model stage needs tilted "
+            f"and upright windows)")
+
+
 def run_day16(csv_path: str, manifest_path: str | None = None,
               source: str = "Run 2 re-run capture") -> dict:
     """Full Day 16 run on one validated Run 2 capture CSV."""
@@ -226,6 +257,7 @@ def run_day16(csv_path: str, manifest_path: str | None = None,
 
     grid = evaluate_head_gate(frames, session, **R2_TIMING)
     head_windows = build_windows(frames, session, "head", **R2_TIMING)
+    _require_both_classes(head_windows, "head")
     head_sets = _feature_sets_with_run2_baseline(
         head_windows, "head", FEATURES["head"], DAY15_HEAD_FEATURES,
         head_rule)
@@ -245,6 +277,7 @@ def run_day16(csv_path: str, manifest_path: str | None = None,
     signal = evaluate_all(frames, session, **R2_TIMING)
     shoulder_windows = build_windows(frames, session, "shoulder",
                                      **R2_TIMING)
+    _require_both_classes(shoulder_windows, "shoulder")
     shoulder_sets = _feature_sets_with_run2_baseline(
         shoulder_windows, "shoulder", OLD_FEATURES["shoulder"],
         FEATURES["shoulder"], shoulder_rule)
@@ -526,8 +559,11 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         result = run_day16(args.csv, args.manifest, source=args.source)
-    except ValueError as e:
-        print(f"Day 16 validation failed:\n{e}", file=sys.stderr)
+    except (ValueError, OSError) as e:
+        # A missing file is an OSError, not a validation failure:
+        # both are user errors with a clear message, exit code 2,
+        # and no traceback either way.
+        print(f"Day 16 failed:\n{e}", file=sys.stderr)
         return 2
     here = Path(__file__).parent
     out = Path(args.out) if args.out else here / "results_day16.json"
