@@ -44,7 +44,10 @@ def test_rejects_missing_column(tmp_path):
 
 def test_rejects_unknown_step(tmp_path):
     path = build_csv(tmp_path)
-    text = open(path).read().replace(",head,10.0,", ",dance,10.0", 1)
+    # keep the field count intact: the replacement must carry the
+    # trailing comma, or the row is ragged and the field-count
+    # check fires first (Day 21)
+    text = open(path).read().replace(",head,10.0,", ",dance,10.0,", 1)
     open(path, "w").write(text)
     with pytest.raises(ValueError, match="unknown step"):
         load_session(path)
