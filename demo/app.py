@@ -27,19 +27,25 @@ import numpy as np
 import streamlit as st
 
 from demo_data import (
+    BENCHMARK_TABLES,
     FEEDBACK_BODY,
     FEEDBACK_HEADING,
     FEEDBACK_URL,
     HEAD_THRESHOLD_DEG,
     HOWTO_HEADING,
     HOWTO_STEPS,
+    JOURNEY_HEADING,
+    JOURNEY_INTRO,
     PURPOSE_BODY,
     PURPOSE_HEADING,
     SHOULDER_THRESHOLD_DEG,
     VERDICT,
+    benchmark_frame,
     best_rule,
     gate_verdict,
+    journey_frame,
     load_sample,
+    pipeline_frame,
     sample_stats,
     scoreboard_frame,
     trials_frame,
@@ -459,6 +465,62 @@ def _snapshot_results(preset: str) -> None:
             )
 
 
+def _full_project() -> None:
+    """Day 22: the whole project on one page.
+
+    The pipeline, one row per day with its key result, and every
+    benchmark table. All numbers come from demo_data and are pinned
+    to their source files; the section adds no new claims.
+    """
+    st.header(JOURNEY_HEADING)
+    st.write(JOURNEY_INTRO)
+
+    st.subheader("How it works, end to end")
+    for row in pipeline_frame().to_dict("records"):
+        st.write(
+            f"{row['step']}. **{row['stage']}** (Day {row['day']}, "
+            f"{row['tool']}): {row['what']}"
+        )
+
+    st.subheader("The journey, day by day")
+    st.write(
+        "One row per day, newest last. The result column is the "
+        "headline from that day; the tests column is the cumulative "
+        "suite total after the day landed."
+    )
+    st.dataframe(journey_frame(), use_container_width=True)
+
+    st.subheader("Every benchmark table")
+    for key in ("day8_head", "day8_shoulder", "day11_signals",
+                "day12_shoulder_new", "day13_served"):
+        entry = BENCHMARK_TABLES[key]
+        st.write(f"**{entry['title']}** (source: {entry['source']})")
+        st.dataframe(benchmark_frame(key), use_container_width=True)
+    st.write(
+        "**Day 8 verdict:** the MLP does not beat logistic regression "
+        "on either cue (head F1 0.060 vs 0.078, shoulder 0.133 vs "
+        "0.179), and no model passes the gate. **Day 11 verdict:** the "
+        "gated signal fixes the tracker-noise half, not the level "
+        "half. **Day 12 verdict:** the gated features help logistic "
+        "regression and the MLP on F1, but no model passes the gate. "
+        "**Day 13 verdict:** the served models still do not pass the "
+        "gate (shoulder LR 5/5 trials but 3 false positives)."
+    )
+    fixture = BENCHMARK_TABLES["day16_fixture"]
+    st.write(f"**{fixture['title']}** (source: {fixture['source']})")
+    st.write(
+        f"Synthetic fixture: {fixture['frames']} frames, "
+        f"{fixture['tracked_fraction']:.1%} tracked, work sample "
+        f"{fixture['work_s']} s, holds reaching target "
+        f"{fixture['holds_reached_target']}. Head grid best: "
+        f"{fixture['head_grid_best']}. Shoulder gated best: "
+        f"{fixture['shoulder_gated_best']}. {fixture['verdict']} The "
+        "holds are clean steps to target depth with flat work, so the "
+        "gate passes there by construction. Nothing here is a claim "
+        "about the real capture, which has not arrived."
+    )
+
+
 def main() -> None:
     st.set_page_config(page_title="PoseGuard: on-device posture cues", layout="wide")
     st.title("PoseGuard: can a webcam tell when you slouch?")
@@ -568,6 +630,8 @@ def main() -> None:
         "Code, walkthroughs, and the full benchmark tables: "
         "github.com/dasarijashwanth/PoseGuard"
     )
+
+    _full_project()
 
     st.header(FEEDBACK_HEADING)
     st.write(FEEDBACK_BODY)

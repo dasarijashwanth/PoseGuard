@@ -1,4 +1,4 @@
-# PoseGuard public demo (Day 19)
+# PoseGuard public demo (Day 22)
 
 A Streamlit app for anyone who opens the repo: try the live webcam
 check yourself, then read the real Run 1 validation session, gate
@@ -57,6 +57,13 @@ libGL, which the Cloud image does not ship.
 - **The honest verdict**: nothing passes the gate. Best rule 4/5 trials
   with 8 false positives; best model F1 0.172. The holds are shallow as
   well as brief.
+- **The full project in one place (Day 22)**: the pipeline in 8 stages,
+  one row per day (Days 1-22) with its key result, and every benchmark
+  table: the Day 8 MLP benchmark, the Day 11 shoulder signal
+  candidates, the Day 12 shoulder new-feature comparison, the Day 13
+  served models, and the Day 16 synthetic fixture summary, labeled
+  synthetic. Every number is pinned to its source file, in
+  `experiments/model/tests/test_day22.py`.
 
 ## Numbers and their sources
 
@@ -70,6 +77,12 @@ Every number in the demo is pinned to a results file and to tests in
 | Shoulder models (new features) LR / MLP F1 0.172, RF 0/5 | `experiments/model/results_day17.json` |
 | Head models (new features) LR F1 0.097, MLP F1 0.105, RF 0/5 | `experiments/model/results_day15.json` |
 | Trial dwell rows | `hold_dwells` in the same two files |
+| Journey dates and test counts per day | Root README Build Progress |
+| Day 8 head/shoulder model rows | `experiments/model/benchmark.json` old feature sets |
+| Day 11 signal rows (old level and gated, 1/6/8 deg) | `experiments/model/BENCHMARK.md` signal table |
+| Day 12 shoulder new-feature rows | `experiments/model/benchmark.json` shoulder new feature set |
+| Day 13 served LR rows (6 head features, 11 shoulder features) | `experiments/model/results_day13.json` |
+| Day 16 fixture (5,150 frames, 98.1% tracked, 299.9 s work, 10/10 holds) | `experiments/model/results_day16.json` |
 
 ## Layout
 
