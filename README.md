@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 19. The Python pipeline is complete and tested (286/286 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this, and Day 19 turns it into a real app: a live webcam check (streamlit-webrtc video, snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
+**Status:** Built through Day 22. The Python pipeline is complete and tested (342/342 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this, Day 19 turns it into a real app: a live webcam check (streamlit-webrtc video, snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues, and Day 22 puts the whole project in the live link: the pipeline, one row per day with its key result, and every benchmark table. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
 
 ## What this project is
 
@@ -192,7 +192,7 @@ Serve the API:
 uvicorn experiments.model.api:app --port 8000
 ```
 
-Run the tests (286/286 in one combined run: 80 eval + 206 model):
+Run the tests (342/342 in one combined run: 80 eval + 262 model):
 
 ```bash
 python -m pytest experiments/ -q
@@ -249,6 +249,12 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 22 (Nov 23): the full project in one place
+
+- Day 21 landed in the morning, and he asked for the live link to show everything, not just the showcase: all result values, the whole process, and all the work from the initial days, in one place, and to do it today. One day-slice per day is the standing rule, and this is the exception he ordered explicitly, so it is recorded as such. Day 22 adds the section to the live demo (`demo/app.py` `_full_project()`, data in `demo/demo_data.py`): the pipeline in 8 stages, one row per day (Days 1-22) with its key result and cumulative test total, and every benchmark table (Day 8 MLP benchmark, Day 11 shoulder signal candidates, Day 12 shoulder new-feature comparison, Day 13 served models, Day 16 synthetic fixture summary, labeled synthetic). The existing showcase and webcam check are untouched.
+- Every number in the new section is pinned to its source file and asserted in `experiments/model/tests/test_day22.py`: journey dates and test counts to the root README Build Progress, Day 8 and Day 12 rows to `benchmark.json`, Day 11 signal rows to the BENCHMARK.md table, Day 13 served rows to `results_day13.json`, and the Day 16 fixture to `results_day16.json`. No real-data row passes the gate, and the Day 16 fixture stays labeled synthetic. The full 60-config head grid, 72-config shoulder grid, and Day 16 full model tables are deliberately left out: the demo shows the best configuration per cue and the fixture summary, and the full tables live in BENCHMARK.md. No model, threshold, or gate logic changed.
+- 342/342 tests passing in one combined run (80 eval + 262 model, including 18 new Day 22 tests). Full numbers in `experiments/model/WALKTHROUGH_DAY22.md`.
 
 ### Day 15 (Nov 17): head cue rework
 
