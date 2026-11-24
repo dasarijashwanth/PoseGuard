@@ -170,10 +170,13 @@ SHOULDER_TRIALS = [
 ]
 
 VERDICT = (
-    "NOTHING passes the gate. The best rule reaches 4/5 trials but "
-    "carries 8 false positives, and the best model reaches F1 0.172. "
-    "The holds are shallow as well as brief: the deepest head hold peaks "
-    "at 7.1 deg against an 8 deg threshold no hold ever reaches."
+    "NOTHING passes the gate. The best single-cue rule reaches 4/5 "
+    "trials but carries 8 false positives; the best joint rule (Day "
+    "23, both cues scored together) reaches 5/5 shoulder trials and "
+    "4/5 head trials, also with 8 false positives, and the best model "
+    "reaches F1 0.172. The holds are shallow as well as brief: the "
+    "deepest head hold peaks at 7.1 deg against an 8 deg threshold no "
+    "hold ever reaches."
 )
 
 # --- Day 19: purpose, how to use it, feedback -----------------------
