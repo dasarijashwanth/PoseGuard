@@ -1,0 +1,559 @@
+{
+  "day": 23,
+  "date": "2026-11-24",
+  "csv": "/home/hatch/workspace/user/files/poseguard-validation-2026-11-03T19-24-30-709Z.csv",
+  "frames": 7820,
+  "scales": {
+    "head_deg": 5.0,
+    "shoulder_deg": 1.0
+  },
+  "evaluation": {
+    "alignment_offset_s": 9.5,
+    "alignment_verified": false,
+    "cues": {
+      "head": {
+        "alignment_offset_s": 9.5,
+        "alignment_verified": true,
+        "variants": {
+          "iso": {
+            "dev_col": "j_dev_h",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 2.0,
+                "detected": 1,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 0.2,
+                "f1": 0.333,
+                "pass": false
+              },
+              {
+                "threshold": 4.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 6.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 8.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 10.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 2.0,
+              "detected": 1,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 0.2,
+              "f1": 0.333,
+              "pass": false
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 2.0,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": false
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 2.0,
+                "detected": 1,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": false
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 2.0,
+                "detected": 1,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": false
+              }
+            ]
+          },
+          "sum": {
+            "dev_col": "j_dev_sum",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 9,
+                "precision": 0.308,
+                "recall": 0.8,
+                "f1": 0.444,
+                "pass": false
+              },
+              {
+                "threshold": 0.75,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 9,
+                "precision": 0.308,
+                "recall": 0.8,
+                "f1": 0.444,
+                "pass": false
+              },
+              {
+                "threshold": 1.0,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.333,
+                "recall": 0.8,
+                "f1": 0.471,
+                "pass": false
+              },
+              {
+                "threshold": 1.25,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.333,
+                "recall": 0.8,
+                "f1": 0.471,
+                "pass": false
+              },
+              {
+                "threshold": 1.5,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.273,
+                "recall": 0.6,
+                "f1": 0.375,
+                "pass": false
+              },
+              {
+                "threshold": 2.0,
+                "detected": 1,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.111,
+                "recall": 0.2,
+                "f1": 0.143,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 1.0,
+              "detected": 4,
+              "trials_total": 5,
+              "false_positives": 8,
+              "precision": 0.333,
+              "recall": 0.8,
+              "f1": 0.471,
+              "pass": false
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 1.0,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 1.0,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 1.0,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              }
+            ]
+          },
+          "and_control": {
+            "dev_col": "h_dev",
+            "valid_col": "j_shoulder_above",
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 4.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 4.0,
+              "detected": 0,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "pass": false
+            }
+          }
+        }
+      },
+      "shoulder": {
+        "alignment_offset_s": 9.5,
+        "alignment_verified": false,
+        "variants": {
+          "iso": {
+            "dev_col": "j_dev_s",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 9,
+                "precision": 0.25,
+                "recall": 0.6,
+                "f1": 0.353,
+                "pass": false
+              },
+              {
+                "threshold": 1.0,
+                "detected": 2,
+                "trials_total": 5,
+                "false_positives": 5,
+                "precision": 0.286,
+                "recall": 0.4,
+                "f1": 0.333,
+                "pass": false
+              },
+              {
+                "threshold": 1.5,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 6,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 2.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 4,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 2.5,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 1,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              },
+              {
+                "threshold": 3.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 1,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 0.5,
+              "detected": 3,
+              "trials_total": 5,
+              "false_positives": 9,
+              "precision": 0.25,
+              "recall": 0.6,
+              "f1": 0.353,
+              "pass": false
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 0.5,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 9,
+                "pass": false
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 0.5,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 9,
+                "pass": false
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 0.5,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 9,
+                "pass": false
+              }
+            ]
+          },
+          "sum": {
+            "dev_col": "j_dev_sum",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 9,
+                "precision": 0.357,
+                "recall": 1.0,
+                "f1": 0.526,
+                "pass": false
+              },
+              {
+                "threshold": 0.75,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 9,
+                "precision": 0.357,
+                "recall": 1.0,
+                "f1": 0.526,
+                "pass": false
+              },
+              {
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.385,
+                "recall": 1.0,
+                "f1": 0.556,
+                "pass": false
+              },
+              {
+                "threshold": 1.25,
+                "detected": 4,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.333,
+                "recall": 0.8,
+                "f1": 0.471,
+                "pass": false
+              },
+              {
+                "threshold": 1.5,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.273,
+                "recall": 0.6,
+                "f1": 0.375,
+                "pass": false
+              },
+              {
+                "threshold": 2.0,
+                "detected": 3,
+                "trials_total": 5,
+                "false_positives": 8,
+                "precision": 0.273,
+                "recall": 0.6,
+                "f1": 0.375,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 1.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 8,
+              "precision": 0.385,
+              "recall": 1.0,
+              "f1": 0.556,
+              "pass": false
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 8,
+                "pass": false
+              }
+            ]
+          },
+          "and_control": {
+            "dev_col": "s_dev_gated",
+            "valid_col": "j_head_above",
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 1.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 1.0,
+              "detected": 0,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "pass": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "fixture": {
+    "source": "synthetic fixture (experiments.eval.tests.test_rerun builder), not a real capture",
+    "timings": {
+      "ready_s": 5.0,
+      "hold_s": 10.0,
+      "rest_s": 5.0
+    },
+    "cues": {
+      "head": {
+        "iso": {
+          "threshold": 2.0,
+          "detected": 5,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "pass": true
+        },
+        "sum": {
+          "threshold": 0.5,
+          "detected": 5,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "pass": true
+        },
+        "and_control": {
+          "threshold": 4.0,
+          "detected": 0,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "pass": false
+        }
+      },
+      "shoulder": {
+        "iso": {
+          "threshold": 0.5,
+          "detected": 5,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "pass": true
+        },
+        "sum": {
+          "threshold": 0.5,
+          "detected": 5,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "pass": true
+        },
+        "and_control": {
+          "threshold": 1.0,
+          "detected": 0,
+          "trials_total": 5,
+          "false_positives": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "pass": false
+        }
+      }
+    }
+  },
+  "verdict": "NOTHING passes the gate on Run 1. Best rule by F1 on both cues is the normalized sum at threshold 1.0, 5 s persistence: shoulder 5/5 trials, 8 false positives, F1 0.556; head 4/5 trials, 8 false positives, F1 0.471. The isolation scores are worse than the single-cue rules (shoulder 3/5, 9 FP; head 1/5, 0 FP). The AND control detects 0/5 on both cues."
+}
