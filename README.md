@@ -6,7 +6,7 @@ PoseGuard is a Python, AI, and ML project that tests whether webcam posture cues
 
 The headline result is not a success story. The classifier does not beat the simple rule baseline on either cue yet, and the report below says exactly why. The value of the project is the evaluation: a full pipeline that can tell a real signal from a fake one, on real data, with numbers.
 
-**Status:** Built through Day 22. The Python pipeline is complete and tested (342/342 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best rule catches 4/5 shoulder trials with 8 false positives; the best head rule catches 2/5 with 3 false positives; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this, Day 19 turns it into a real app: a live webcam check (streamlit-webrtc video, snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues, and Day 22 puts the whole project in the live link: the pipeline, one row per day with its key result, and every benchmark table. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
+**Status:** Built through Day 23. The Python pipeline is complete and tested (360/360 tests). The honest headline has not changed since Day 3: **nothing passes the gate**. The best joint rule catches 5/5 shoulder trials and 4/5 head trials, both with 8 false positives; the best single-cue rules catch 4/5 shoulder and 2/5 head; no model beats the rule baseline on either cue. Day 18 ships the public Streamlit demo that shows all of this, Day 19 turns it into a real app: a live webcam check (streamlit-webrtc video, snapshot fallback), a purpose and how-to-use section, and a feedback link to GitHub issues, and Day 22 puts the whole project in the live link: the pipeline, one row per day with its key result, and every benchmark table. Day 23 scores both cues together in one joint score and finds the best rule yet on both cues, still 8 false positives short of the gate. The live API URL still needs his Render or AWS clicks (guides in `docs/DEPLOY.md` and `docs/DEPLOY_AWS.md`), and the real re-benchmark still waits on his camera re-run capture (Day 14 tool, Day 16 harness ready).
 
 ## What this project is
 
@@ -192,7 +192,7 @@ Serve the API:
 uvicorn experiments.model.api:app --port 8000
 ```
 
-Run the tests (342/342 in one combined run: 80 eval + 262 model):
+Run the tests (360/360 in one combined run: 91 eval + 269 model):
 
 ```bash
 python -m pytest experiments/ -q
@@ -249,6 +249,12 @@ To collect validation data, serve `experiments/webcam-validation-experiment.html
 - Everything above rests on one validation session (Run 1, Nov 3, 2026). One session, five holds per cue, is too little data to train on or to generalize from. The re-run is the next data point, not a victory lap.
 
 ## Build Progress
+
+### Day 23 (Nov 24) — Combined-cue gate attempt: joint score, not naive AND
+
+- Built a **combined-cue rule** that scores the shoulder and head deviations together in one joint score (normalized sum `|h_dev|/5 + |s_dev_gated|/1`), plus an isolation variant and a naive-AND control, in `experiments/eval/combined.py`. The gate scores detection per cue, so a naive AND would detect 0/5 single-cue holds by construction; the joint score lets a strong single-cue hold cross the threshold while small simultaneous drift on both cues stays under it. The best joint rule is the best rule yet on both cues: **shoulder 5/5, head 4/5**, both with 8 false positives, F1 0.556 and 0.471.
+- The honest verdict is unchanged: **nothing passes the gate**. The 8 false positives are the same shoulder-drift episodes the gated shoulder rule already fired on; the joint score inherits them, so combining the cues cannot beat the shoulder rule's false-positive floor on this data. On the Day 16 synthetic fixture the joint rule passes both cues 5/5, 0 FP, F1 1.0, which proves the machinery works and the Run 1 failure is the data. `BEST_RULES` and the day-by-day journey table are deliberately unchanged: the joint threshold is in normalized units, not degrees, and the journey pins exactly 22 rows.
+- 360/360 tests in one combined run (91 eval + 269 model), 18 new: 11 for the combined rule and its evaluation, 7 for the Day 23 results and verdict. Full walkthrough: `experiments/model/WALKTHROUGH_DAY23.md`.
 
 ### Day 22 (Nov 23): the full project in one place
 
