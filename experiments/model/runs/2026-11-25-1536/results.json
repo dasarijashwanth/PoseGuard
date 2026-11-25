@@ -1,0 +1,2358 @@
+{
+  "csv": "experiments/model/tests/fixtures/rerun-synthetic.csv",
+  "manifest": null,
+  "source": "synthetic fixture (Day 14 builder)",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "frames": 5150,
+    "tracked_fraction": 0.981,
+    "holds": [
+      {
+        "cue": "head",
+        "hold_id": 1,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 16.0,
+        "target_deg": 15.0,
+        "reached_target": true
+      },
+      {
+        "cue": "head",
+        "hold_id": 2,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 16.0,
+        "target_deg": 15.0,
+        "reached_target": true
+      },
+      {
+        "cue": "head",
+        "hold_id": 3,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 16.0,
+        "target_deg": 15.0,
+        "reached_target": true
+      },
+      {
+        "cue": "head",
+        "hold_id": 4,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 16.0,
+        "target_deg": 15.0,
+        "reached_target": true
+      },
+      {
+        "cue": "head",
+        "hold_id": 5,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 16.0,
+        "target_deg": 15.0,
+        "reached_target": true
+      },
+      {
+        "cue": "shoulder",
+        "hold_id": 1,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 9.0,
+        "target_deg": 8.0,
+        "reached_target": true
+      },
+      {
+        "cue": "shoulder",
+        "hold_id": 2,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 9.0,
+        "target_deg": 8.0,
+        "reached_target": true
+      },
+      {
+        "cue": "shoulder",
+        "hold_id": 3,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 9.0,
+        "target_deg": 8.0,
+        "reached_target": true
+      },
+      {
+        "cue": "shoulder",
+        "hold_id": 4,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 9.0,
+        "target_deg": 8.0,
+        "reached_target": true
+      },
+      {
+        "cue": "shoulder",
+        "hold_id": 5,
+        "frames": 100,
+        "duration_s": 9.9,
+        "tracked_fraction": 1.0,
+        "max_abs_dev_deg": 9.0,
+        "target_deg": 8.0,
+        "reached_target": true
+      }
+    ],
+    "gaps": [],
+    "work_s": 299.9
+  },
+  "day16": {
+    "csv": "experiments/model/tests/fixtures/rerun-synthetic.csv",
+    "manifest": null,
+    "source": "synthetic fixture (Day 14 builder)",
+    "validation": {
+      "frames": 5150,
+      "tracked_fraction": 0.981,
+      "work_s": 299.9,
+      "warnings": [],
+      "holds": [
+        {
+          "cue": "head",
+          "hold_id": 1,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 16.0,
+          "target_deg": 15.0,
+          "reached_target": true
+        },
+        {
+          "cue": "head",
+          "hold_id": 2,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 16.0,
+          "target_deg": 15.0,
+          "reached_target": true
+        },
+        {
+          "cue": "head",
+          "hold_id": 3,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 16.0,
+          "target_deg": 15.0,
+          "reached_target": true
+        },
+        {
+          "cue": "head",
+          "hold_id": 4,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 16.0,
+          "target_deg": 15.0,
+          "reached_target": true
+        },
+        {
+          "cue": "head",
+          "hold_id": 5,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 16.0,
+          "target_deg": 15.0,
+          "reached_target": true
+        },
+        {
+          "cue": "shoulder",
+          "hold_id": 1,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 9.0,
+          "target_deg": 8.0,
+          "reached_target": true
+        },
+        {
+          "cue": "shoulder",
+          "hold_id": 2,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 9.0,
+          "target_deg": 8.0,
+          "reached_target": true
+        },
+        {
+          "cue": "shoulder",
+          "hold_id": 3,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 9.0,
+          "target_deg": 8.0,
+          "reached_target": true
+        },
+        {
+          "cue": "shoulder",
+          "hold_id": 4,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 9.0,
+          "target_deg": 8.0,
+          "reached_target": true
+        },
+        {
+          "cue": "shoulder",
+          "hold_id": 5,
+          "frames": 100,
+          "duration_s": 9.9,
+          "tracked_fraction": 1.0,
+          "max_abs_dev_deg": 9.0,
+          "target_deg": 8.0,
+          "reached_target": true
+        }
+      ]
+    },
+    "frames": 5150,
+    "cues": {
+      "head": {
+        "n_windows": 400,
+        "n_tilted_windows": 45,
+        "rule_grid": {
+          "alignment_offset_s": 0.1,
+          "alignment_verified": true,
+          "hold_dwells": [
+            {
+              "trial": 1,
+              "samples": 100,
+              "mean_abs_dev": 15.79,
+              "max_abs_dev": 16.0,
+              "dwell_gt4_s": 9.9,
+              "dwell_gt5_s": 9.9,
+              "dwell_gt6_s": 9.9,
+              "dwell_gt7_s": 9.9,
+              "dwell_gt8_s": 9.9
+            },
+            {
+              "trial": 2,
+              "samples": 100,
+              "mean_abs_dev": 15.79,
+              "max_abs_dev": 16.0,
+              "dwell_gt4_s": 9.9,
+              "dwell_gt5_s": 9.9,
+              "dwell_gt6_s": 9.9,
+              "dwell_gt7_s": 9.9,
+              "dwell_gt8_s": 9.9
+            },
+            {
+              "trial": 3,
+              "samples": 100,
+              "mean_abs_dev": 15.79,
+              "max_abs_dev": 16.0,
+              "dwell_gt4_s": 9.9,
+              "dwell_gt5_s": 9.9,
+              "dwell_gt6_s": 9.9,
+              "dwell_gt7_s": 9.9,
+              "dwell_gt8_s": 9.9
+            },
+            {
+              "trial": 4,
+              "samples": 100,
+              "mean_abs_dev": 15.79,
+              "max_abs_dev": 16.0,
+              "dwell_gt4_s": 9.9,
+              "dwell_gt5_s": 9.9,
+              "dwell_gt6_s": 9.9,
+              "dwell_gt7_s": 9.9,
+              "dwell_gt8_s": 9.9
+            },
+            {
+              "trial": 5,
+              "samples": 100,
+              "mean_abs_dev": 15.79,
+              "max_abs_dev": 16.0,
+              "dwell_gt4_s": 9.9,
+              "dwell_gt5_s": 9.9,
+              "dwell_gt6_s": 9.9,
+              "dwell_gt7_s": 9.9,
+              "dwell_gt8_s": 9.9
+            }
+          ],
+          "rows": [
+            {
+              "threshold": 4,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": null,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 5.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 10.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 4,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 5,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 6,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 7,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 2.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 3.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            {
+              "threshold": 8,
+              "persist_s": 5.0,
+              "vel_cap_deg_s": 20.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          ],
+          "best": {
+            "threshold": 4,
+            "persist_s": 5.0,
+            "vel_cap_deg_s": null,
+            "detected": 5,
+            "trials_total": 5,
+            "false_positives": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "rule_baseline": {
+          "detected_trials": 5,
+          "false_positive_events": 0
+        },
+        "model_comparison": {
+          "old_features": [
+            "mean_abs_h",
+            "max_abs_h",
+            "mean_h",
+            "std_h",
+            "frac_h_gt5",
+            "jerk_h"
+          ],
+          "new_features": [
+            "mean_abs_h",
+            "max_abs_h",
+            "mean_h",
+            "std_h",
+            "frac_h_gt5",
+            "jerk_h",
+            "vel_h",
+            "dwell_h"
+          ],
+          "feature_sets": {
+            "old": {
+              "features": [
+                "mean_abs_h",
+                "max_abs_h",
+                "mean_h",
+                "std_h",
+                "frac_h_gt5",
+                "jerk_h"
+              ],
+              "rows": [
+                {
+                  "model": "logistic_regression",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                },
+                {
+                  "model": "random_forest",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                },
+                {
+                  "model": "mlp",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                }
+              ],
+              "rule_baseline": {
+                "detected_trials": 5,
+                "false_positive_events": 0
+              },
+              "mlp_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                }
+              ],
+              "sk_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                }
+              ],
+              "mlp_calm_accuracy": 1.0,
+              "best_sk_calm_accuracy": 1.0,
+              "mlp_split_metrics": {
+                "n": 120,
+                "n_tilted": 13,
+                "n_upright": 107,
+                "accuracy": 1.0,
+                "precision_tilted": 1.0,
+                "recall_tilted": 1.0,
+                "f1_tilted": 1.0,
+                "precision_upright": 1.0,
+                "recall_upright": 1.0,
+                "f1_upright": 1.0,
+                "confusion": {
+                  "tn": 107,
+                  "fp": 0,
+                  "fn": 0,
+                  "tp": 13
+                }
+              },
+              "lr_coefficients": {
+                "mean_abs_h": 1.008,
+                "max_abs_h": 0.951,
+                "mean_h": 1.008,
+                "std_h": -0.602,
+                "frac_h_gt5": 0.951,
+                "jerk_h": -0.602
+              },
+              "rf_feature_importance": {
+                "mean_abs_h": 0.294,
+                "max_abs_h": 0.283,
+                "mean_h": 0.233,
+                "std_h": 0.004,
+                "frac_h_gt5": 0.182,
+                "jerk_h": 0.005
+              },
+              "verdict": "The MLP ties the best scikit-learn model (logistic_regression) on F1 at 1.0. It passes the gate: 5/5 trials with 0 false positives, against the rule baseline of 5/5 trials and 0 false positives."
+            },
+            "new": {
+              "features": [
+                "mean_abs_h",
+                "max_abs_h",
+                "mean_h",
+                "std_h",
+                "frac_h_gt5",
+                "jerk_h",
+                "vel_h",
+                "dwell_h"
+              ],
+              "rows": [
+                {
+                  "model": "logistic_regression",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                },
+                {
+                  "model": "random_forest",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                },
+                {
+                  "model": "mlp",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                }
+              ],
+              "rule_baseline": {
+                "detected_trials": 5,
+                "false_positive_events": 0
+              },
+              "mlp_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                }
+              ],
+              "sk_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                }
+              ],
+              "mlp_calm_accuracy": 1.0,
+              "best_sk_calm_accuracy": 1.0,
+              "mlp_split_metrics": {
+                "n": 120,
+                "n_tilted": 13,
+                "n_upright": 107,
+                "accuracy": 1.0,
+                "precision_tilted": 1.0,
+                "recall_tilted": 1.0,
+                "f1_tilted": 1.0,
+                "precision_upright": 1.0,
+                "recall_upright": 1.0,
+                "f1_upright": 1.0,
+                "confusion": {
+                  "tn": 107,
+                  "fp": 0,
+                  "fn": 0,
+                  "tp": 13
+                }
+              },
+              "lr_coefficients": {
+                "mean_abs_h": 0.836,
+                "max_abs_h": 0.788,
+                "mean_h": 0.836,
+                "std_h": -0.44,
+                "frac_h_gt5": 0.795,
+                "jerk_h": -0.44,
+                "vel_h": -0.44,
+                "dwell_h": 0.794
+              },
+              "rf_feature_importance": {
+                "mean_abs_h": 0.217,
+                "max_abs_h": 0.241,
+                "mean_h": 0.262,
+                "std_h": 0.004,
+                "frac_h_gt5": 0.136,
+                "jerk_h": 0.007,
+                "vel_h": 0.002,
+                "dwell_h": 0.132
+              },
+              "verdict": "The MLP ties the best scikit-learn model (logistic_regression) on F1 at 1.0. It passes the gate: 5/5 trials with 0 false positives, against the rule baseline of 5/5 trials and 0 false positives."
+            }
+          },
+          "verdict": "logistic_regression: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. random_forest: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. mlp: F1 unchanged at 1.0, trials 5/5 to 5/5, false positives 0 to 0. Passes the gate: logistic_regression, random_forest, mlp, logistic_regression, random_forest, mlp. Best-F1 model calm-only accuracy 1.0 (logistic_regression, old) to 1.0 (logistic_regression, new)."
+        }
+      },
+      "shoulder": {
+        "n_windows": 400,
+        "n_tilted_windows": 45,
+        "signal": {
+          "alignment_offset_s": 0.1,
+          "alignment_verified": true,
+          "candidates": {
+            "roll": {
+              "candidate": "roll",
+              "dev_col": "s_dev_roll",
+              "valid_col": null,
+              "threshold_curve": [
+                {
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.3
+                },
+                {
+                  "threshold": 2,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 3,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 4,
+                  "detected": 1,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.9
+                },
+                {
+                  "threshold": 6,
+                  "detected": 1,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.7
+                },
+                {
+                  "threshold": 8,
+                  "detected": 1,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.5
+                }
+              ],
+              "persistence_curve": [
+                {
+                  "persist_s": 0.5,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 2.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 5.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                }
+              ],
+              "best": {
+                "threshold": 1,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.3
+              }
+            },
+            "rel": {
+              "candidate": "rel",
+              "dev_col": "s_dev_rel",
+              "valid_col": null,
+              "threshold_curve": [
+                {
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.3
+                },
+                {
+                  "threshold": 2,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 3,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 4,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.9
+                },
+                {
+                  "threshold": 6,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.7
+                },
+                {
+                  "threshold": 8,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.5
+                }
+              ],
+              "persistence_curve": [
+                {
+                  "persist_s": 0.5,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 2.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 5.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                }
+              ],
+              "best": {
+                "threshold": 1,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.3
+              }
+            },
+            "gated": {
+              "candidate": "gated",
+              "dev_col": "s_dev",
+              "valid_col": "s_clean",
+              "threshold_curve": [
+                {
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.3
+                },
+                {
+                  "threshold": 2,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 3,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 10.1
+                },
+                {
+                  "threshold": 4,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.9
+                },
+                {
+                  "threshold": 6,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.7
+                },
+                {
+                  "threshold": 8,
+                  "detected": 5,
+                  "trials_total": 5,
+                  "false_positives": 0,
+                  "longest_run_s": 9.5
+                }
+              ],
+              "persistence_curve": [
+                {
+                  "persist_s": 0.5,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 2.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                },
+                {
+                  "persist_s": 5.0,
+                  "threshold": 1,
+                  "detected": 5,
+                  "trials_total": 5
+                }
+              ],
+              "best": {
+                "threshold": 1,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.3
+              }
+            }
+          },
+          "old_level": {
+            "candidate": "old_level",
+            "dev_col": "s_dev",
+            "valid_col": null,
+            "threshold_curve": [
+              {
+                "threshold": 1,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.3
+              },
+              {
+                "threshold": 2,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.1
+              },
+              {
+                "threshold": 3,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 10.1
+              },
+              {
+                "threshold": 4,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 9.9
+              },
+              {
+                "threshold": 6,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 9.7
+              },
+              {
+                "threshold": 8,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "longest_run_s": 9.5
+              }
+            ],
+            "best": {
+              "threshold": 1,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "longest_run_s": 10.3
+            }
+          }
+        },
+        "rule_baseline": {
+          "detected_trials": 5,
+          "false_positive_events": 0
+        },
+        "model_comparison": {
+          "old_features": [
+            "std_s",
+            "range_s",
+            "jerk_s",
+            "slope_s",
+            "corr_h_s",
+            "std_h",
+            "mean_abs_h",
+            "jerk_h"
+          ],
+          "new_features": [
+            "std_s",
+            "range_s",
+            "jerk_s",
+            "slope_s",
+            "corr_h_s",
+            "std_h",
+            "mean_abs_h",
+            "jerk_h",
+            "mean_abs_sn",
+            "max_abs_sn",
+            "std_sn"
+          ],
+          "feature_sets": {
+            "old": {
+              "features": [
+                "std_s",
+                "range_s",
+                "jerk_s",
+                "slope_s",
+                "corr_h_s",
+                "std_h",
+                "mean_abs_h",
+                "jerk_h"
+              ],
+              "rows": [
+                {
+                  "model": "logistic_regression",
+                  "accuracy": 0.14,
+                  "precision_tilted": 0.097,
+                  "recall_tilted": 0.8,
+                  "f1_tilted": 0.173,
+                  "detected_trials": 4,
+                  "false_positive_events": 1,
+                  "work_windows_tilted": 300,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 0.14
+                },
+                {
+                  "model": "random_forest",
+                  "accuracy": 0.925,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 0.333,
+                  "f1_tilted": 0.5,
+                  "detected_trials": 0,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 0.925
+                },
+                {
+                  "model": "mlp",
+                  "accuracy": 0.887,
+                  "precision_tilted": 0.0,
+                  "recall_tilted": 0.0,
+                  "f1_tilted": 0.0,
+                  "detected_trials": 0,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 0.887
+                }
+              ],
+              "rule_baseline": {
+                "detected_trials": 5,
+                "false_positive_events": 0
+              },
+              "mlp_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 3,
+                  "false_positive_events": 1
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                }
+              ],
+              "sk_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 1
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 0,
+                  "false_positive_events": 0
+                }
+              ],
+              "mlp_calm_accuracy": 0.887,
+              "best_sk_calm_accuracy": 0.925,
+              "mlp_split_metrics": {
+                "n": 120,
+                "n_tilted": 13,
+                "n_upright": 107,
+                "accuracy": 0.892,
+                "precision_tilted": 0.0,
+                "recall_tilted": 0.0,
+                "f1_tilted": 0.0,
+                "precision_upright": 0.892,
+                "recall_upright": 1.0,
+                "f1_upright": 0.943,
+                "confusion": {
+                  "tn": 107,
+                  "fp": 0,
+                  "fn": 13,
+                  "tp": 0
+                }
+              },
+              "lr_coefficients": {
+                "std_s": -0.219,
+                "range_s": -0.219,
+                "jerk_s": -0.219,
+                "slope_s": 0.096,
+                "corr_h_s": 0.0,
+                "std_h": -0.095,
+                "mean_abs_h": -0.095,
+                "jerk_h": -0.095
+              },
+              "rf_feature_importance": {
+                "std_s": 0.173,
+                "range_s": 0.167,
+                "jerk_s": 0.184,
+                "slope_s": 0.476,
+                "corr_h_s": 0.0,
+                "std_h": 0.0,
+                "mean_abs_h": 0.0,
+                "jerk_h": 0.0
+              },
+              "verdict": "The MLP does NOT beat the best scikit-learn model (random_forest): F1 0.0 vs 0.5. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 0/5 trials with 0 false positives, against the rule baseline of 5/5 trials and 0 false positives."
+            },
+            "new": {
+              "features": [
+                "std_s",
+                "range_s",
+                "jerk_s",
+                "slope_s",
+                "corr_h_s",
+                "std_h",
+                "mean_abs_h",
+                "jerk_h",
+                "mean_abs_sn",
+                "max_abs_sn",
+                "std_sn"
+              ],
+              "rows": [
+                {
+                  "model": "logistic_regression",
+                  "accuracy": 0.978,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 0.8,
+                  "f1_tilted": 0.889,
+                  "detected_trials": 4,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 0.978
+                },
+                {
+                  "model": "random_forest",
+                  "accuracy": 1.0,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 1.0,
+                  "f1_tilted": 1.0,
+                  "detected_trials": 5,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 1.0
+                },
+                {
+                  "model": "mlp",
+                  "accuracy": 0.955,
+                  "precision_tilted": 1.0,
+                  "recall_tilted": 0.6,
+                  "f1_tilted": 0.75,
+                  "detected_trials": 3,
+                  "false_positive_events": 0,
+                  "work_windows_tilted": 0,
+                  "work_windows_total": 300,
+                  "calm_accuracy": 0.955
+                }
+              ],
+              "rule_baseline": {
+                "detected_trials": 5,
+                "false_positive_events": 0
+              },
+              "mlp_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 3,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 3,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 3,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 3,
+                  "false_positive_events": 0
+                }
+              ],
+              "sk_threshold_sweep": [
+                {
+                  "threshold": 0.3,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.5,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.7,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                },
+                {
+                  "threshold": 0.9,
+                  "detected_trials": 5,
+                  "false_positive_events": 0
+                }
+              ],
+              "mlp_calm_accuracy": 0.955,
+              "best_sk_calm_accuracy": 1.0,
+              "mlp_split_metrics": {
+                "n": 120,
+                "n_tilted": 13,
+                "n_upright": 107,
+                "accuracy": 1.0,
+                "precision_tilted": 1.0,
+                "recall_tilted": 1.0,
+                "f1_tilted": 1.0,
+                "precision_upright": 1.0,
+                "recall_upright": 1.0,
+                "f1_upright": 1.0,
+                "confusion": {
+                  "tn": 107,
+                  "fp": 0,
+                  "fn": 0,
+                  "tp": 13
+                }
+              },
+              "lr_coefficients": {
+                "std_s": -0.263,
+                "range_s": -0.263,
+                "jerk_s": -0.263,
+                "slope_s": -0.239,
+                "corr_h_s": 0.0,
+                "std_h": -0.016,
+                "mean_abs_h": -0.016,
+                "jerk_h": -0.016,
+                "mean_abs_sn": 1.827,
+                "max_abs_sn": 1.762,
+                "std_sn": -0.263
+              },
+              "rf_feature_importance": {
+                "std_s": 0.012,
+                "range_s": 0.013,
+                "jerk_s": 0.006,
+                "slope_s": 0.028,
+                "corr_h_s": 0.0,
+                "std_h": 0.0,
+                "mean_abs_h": 0.0,
+                "jerk_h": 0.0,
+                "mean_abs_sn": 0.435,
+                "max_abs_sn": 0.495,
+                "std_sn": 0.012
+              },
+              "verdict": "The MLP does NOT beat the best scikit-learn model (random_forest): F1 0.75 vs 1.0. A neural net does not fix this cue on one session of data. It does NOT pass the gate (4/5 trials, 0 false positives): 3/5 trials with 0 false positives, against the rule baseline of 5/5 trials and 0 false positives."
+            }
+          },
+          "verdict": "logistic_regression: F1 0.173 to 0.889, false positives 1 to 0, work flagged 300 to 0. random_forest: F1 0.5 to 1.0, false positives 0 to 0, work flagged 0 to 0. mlp: F1 0.0 to 0.75, false positives 0 to 0, work flagged 0 to 0. Passes the gate: logistic_regression, random_forest. Best-F1 model calm-only accuracy 0.925 (random_forest, old) to 1.0 (random_forest, new). The random forest calm figure is higher only because it predicts almost everything upright, so it is not the honest comparison."
+        }
+      }
+    },
+    "verdict": "Head passes the gate: rule grid best (4 deg, 5.0 s, velocity cap none), logistic_regression (old features), random_forest (old features), mlp (old features), logistic_regression (new features), random_forest (new features), mlp (new features). Shoulder passes the gate: gated signal best (1 deg), logistic_regression (new features), random_forest (new features)."
+  },
+  "combined": {
+    "alignment_offset_s": 0.1,
+    "alignment_verified": true,
+    "cues": {
+      "head": {
+        "alignment_offset_s": 0.1,
+        "alignment_verified": true,
+        "variants": {
+          "iso": {
+            "dev_col": "j_dev_h",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 4.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 6.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 8.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 10.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              }
+            ],
+            "best": {
+              "threshold": 2.0,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "pass": true
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              }
+            ]
+          },
+          "sum": {
+            "dev_col": "j_dev_sum",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 0.75,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.25,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              }
+            ],
+            "best": {
+              "threshold": 0.5,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "pass": true
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              }
+            ]
+          },
+          "and_control": {
+            "dev_col": "h_dev",
+            "valid_col": "j_shoulder_above",
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 4.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 4.0,
+              "detected": 0,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "pass": false
+            }
+          }
+        }
+      },
+      "shoulder": {
+        "alignment_offset_s": 0.1,
+        "alignment_verified": true,
+        "variants": {
+          "iso": {
+            "dev_col": "j_dev_s",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 2.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 3.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              }
+            ],
+            "best": {
+              "threshold": 0.5,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "pass": true
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              }
+            ]
+          },
+          "sum": {
+            "dev_col": "j_dev_sum",
+            "valid_col": null,
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 0.75,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.25,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 1.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              },
+              {
+                "threshold": 2.0,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "pass": true
+              }
+            ],
+            "best": {
+              "threshold": 0.5,
+              "detected": 5,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "pass": true
+            },
+            "persistence_curve": [
+              {
+                "persist_s": 0.5,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 2.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              },
+              {
+                "persist_s": 5.0,
+                "threshold": 0.5,
+                "detected": 5,
+                "trials_total": 5,
+                "false_positives": 0,
+                "pass": true
+              }
+            ]
+          },
+          "and_control": {
+            "dev_col": "s_dev_gated",
+            "valid_col": "j_head_above",
+            "persist_s": 5.0,
+            "rows": [
+              {
+                "threshold": 1.0,
+                "detected": 0,
+                "trials_total": 5,
+                "false_positives": 0,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "pass": false
+              }
+            ],
+            "best": {
+              "threshold": 1.0,
+              "detected": 0,
+              "trials_total": 5,
+              "false_positives": 0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": 0.0,
+              "pass": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "summary": "# PoseGuard re-benchmark run: synthetic fixture (Day 14 builder)\n\n- Capture: experiments/model/tests/fixtures/rerun-synthetic.csv\n- Manifest: none\n\n## Validation\n\n5150 frames, 98.1% tracked, work sample 299.9 s. Holds: head 5/5 holds, 5/5 reached their depth target; shoulder 5/5 holds, 5/5 reached their depth target.\n\nWarnings: none.\n\n## Day 16 verdict\n\nHead passes the gate: rule grid best (4 deg, 5.0 s, velocity cap none), logistic_regression (old features), random_forest (old features), mlp (old features), logistic_regression (new features), random_forest (new features), mlp (new features). Shoulder passes the gate: gated signal best (1 deg), logistic_regression (new features), random_forest (new features).\n\n## Combined gate (Day 23)\n\nBest variant per cue by F1 (ties toward more trials, then fewer false positives; the gate is 4/5 trials with 0 false positives):\n\n- head: sum at threshold 0.5, 5/5 trials, 0 false positives, F1 1.000: passes the gate.\n- shoulder: sum at threshold 0.5, 5/5 trials, 0 false positives, F1 1.000: passes the gate.\n\nAll variants:\n\n| Cue | Variant | Threshold | Trials | False positives | F1 | Pass |\n| --- | --- | ---: | ---: | ---: | ---: | --- |\n| head | sum | 0.5 | 5/5 | 0 | 1.000 | yes |\n| head | iso | 2.0 | 5/5 | 0 | 1.000 | yes |\n| head | and_control | 4.0 | 0/5 | 0 | 0.000 | no |\n| shoulder | sum | 0.5 | 5/5 | 0 | 1.000 | yes |\n| shoulder | iso | 0.5 | 5/5 | 0 | 1.000 | yes |\n| shoulder | and_control | 1.0 | 0/5 | 0 | 0.000 | no |\n"
+}
